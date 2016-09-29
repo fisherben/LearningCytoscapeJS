@@ -1,0 +1,69 @@
+<!--            Ben Fisher
+		fisheben@oregonstate.edu
+		Week 1
+		Assignment:Hello Cloud-->
+		
+<!DOCTYPE html>
+<html>
+ <head>
+ <h2>Activity AJAX Interactions</h2>
+  <meta charset="UTF-8">
+  <title>Ajax Interactions</title>
+  <link rel="stylesheet" href="ajaxStyle.css">
+  <script src="callAPIs.js"></script>
+ </head>
+ <body>	
+	<div class="outterDiv">
+		<h3>Get Weather Information</h3>
+		<form id="weatherForm" onsubmit="return false">
+		  <fieldset>
+			<legend>Open Weather Map</legend>
+			<label for="city">City, State or ZIP Code: </label>
+			<input type="text" name="city" id="city">			
+			<input type="submit" id="getSubmit">
+		  </fieldset>
+		</form>
+		<div>
+		  <h3>Result</h3>
+		  <ul>	  
+			<li><span>City: </span><span id="resultCity"></span></li>
+			<li><span>Country: </span><span id="resultCountry"></span></li>
+			<li><span>Weather: </span><span id="weather"></span></li>
+			<li><span>Humidity: </span><span id="humidity"></span></li>
+			<li><span>Temperature: </span><span id="temp"></span></li>
+			<li><span>Wind: </span><span id="wind">
+				<ul>
+					<li><span>Direction: </span><span id="windDir"></span></li>
+					<li><span>Speed: </span><span id="windSpeed"></span></li>
+				</ul>
+			</span></li>
+		  </ul>
+		</div>    
+	</div>
+	<div class="outterDiv">
+		<h3>Post To Server</h3>
+		<form id="postForm" onsubmit="return false">
+		  <fieldset>
+			<legend>Add Some Data To Send</legend>
+			<label for="name">Name: </label>
+			<input type="text" name="name" id="name">
+			<label for="Height">Height: </label>
+			<input type="text" name="height" id="height">
+			<label for="weight">Weight: </label>
+			<input type="text" name="weight" id="weight">
+			<input type="submit" id="postSubmit">
+		  </fieldset>
+		</form>
+		<div>
+		  <h3>Post Result</h3>
+		  <ul>	  
+			<li><span>Data Returned: </span><span id="resultData"></span></li>
+			<li><span>Name: </span><span id="resultName"></span></li>
+			<li><span>Height: </span><span id="resultHeight"></span></li>
+			<li><span>Weight: </span><span id="resultWeight"></span></li>
+			</span></li>
+		  </ul>
+		</div>    
+	</div>
+ </body>
+</html>
