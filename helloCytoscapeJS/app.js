@@ -18,6 +18,9 @@ var app = express();
 var request = require('request');
 var bodyParser = require('body-parser');
 
+//http://js.cytoscape.org/#getting-started
+var cytoscape = require('cytoscape');
+
 //https://github.com/xpepermint/socket.io-express-session/blob/master/example/index.js#L4
 var Session = require('express-session');
 var SessionStore = require('session-file-store')(Session);
@@ -50,19 +53,17 @@ var cityOrZip = 98112;
 var units = '&units=imperial';
 var weatherURL = zipURL + cityOrZip + units + openWeatherKey;
 
+var context = {};
 // [START hello_world]
 // Say hello!
 app.get('/', function (req, res) {
-    //get time information
-    //http://stackoverflow.com/questions/10211145/getting-current-date-and-time-in-javascript
-    var currentdate = new Date(); 
 
-    var offset = new Date().getTimezoneOffset();
+    //get time information
     var now = new time.Date();
     now.setTimezone("America/Los_Angeles");
     var datetime = "Current Time: " + now.toString();
     //res.status(200).send('Hello, Cloud, Ben Fisher CS 496 Cloud mobile development!');
-    var context = {};
+   
     context.dateTime = "" + datetime;
 
     //increment session
@@ -89,7 +90,8 @@ app.get('/', function (req, res) {
 
       res.render('home', context);
     });			
-});
+
+  });
 // [END hello_world]
 
 //listener all for unrecognized urls
