@@ -1,7 +1,6 @@
 # 1 - Hello world
 
-This folder contains the sample code for the [Hello world][step-1]
-tutorial. Please refer to the tutorial for instructions on configuring, running,
-and deploying this sample.
+This project contains code for running [Cytoscape.js]
+on Node.js.  The Cytoscape graph is initialized from the main.handlebars
+file in the layouts folder.
 
-[step-1]: https://cloud.google.com/nodejs/getting-started/hello-world
