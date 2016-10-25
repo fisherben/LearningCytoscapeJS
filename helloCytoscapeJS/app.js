@@ -18,9 +18,6 @@ var app = express();
 var request = require('request');
 var bodyParser = require('body-parser');
 
-//http://js.cytoscape.org/#getting-started
-var cytoscape = require('cytoscape');
-
 //https://github.com/xpepermint/socket.io-express-session/blob/master/example/index.js#L4
 var Session = require('express-session');
 var SessionStore = require('session-file-store')(Session);
@@ -32,8 +29,9 @@ var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 //http://stackoverflow.com/questions/10615828/how-to-use-timezone-offset-in-nodejs
 //https://www.npmjs.com/package/time
 var time = require('time');
+var minimatch = require("minimatch");
 
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 //tells application that we are using body parser and to include the middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -56,7 +54,7 @@ var weatherURL = zipURL + cityOrZip + units + openWeatherKey;
 var context = {};
 // [START hello_world]
 // Say hello!
-app.get('/weather', function (req, res) {
+app.get('/', function (req, res) {
 
     //get time information
     var now = new time.Date();

@@ -490,7 +490,7 @@ $( function(){ //onDocument ready
 		addNodesToGraphAsTree();
 		
 		cy.on('layoutstart', function (e) {			
-		    //disablePage();
+		    	disablePage();
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			if(doAnimation){
 				//hide nodes
@@ -501,7 +501,7 @@ $( function(){ //onDocument ready
 		
 		cy.on('layoutstop', function (e) {
 			cy.fit();
-		    //enablePage();
+		    	enablePage();
 			
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			
@@ -512,7 +512,7 @@ $( function(){ //onDocument ready
 					
         });
 		
-		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 20000, infinite: false, fit: true});
+		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 10000, infinite: false, fit: true});
 		myLayout.run();		
 	
 		$('#graphTitle').text('Cola Layout');
