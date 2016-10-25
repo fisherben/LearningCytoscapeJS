@@ -1,0 +1,307 @@
+<!DOCTYPE>
+
+<!-- following http://blog.js.cytoscape.org/2016/06/08/glycolysis/ cytoscape ex -->
+<!-- following https://codepen.io/yeoupooh/pen/RrBdeZ for setting up Cytoscape container in Bootstrap -->
+<!-- following https://www.youtube.com/watch?v=gqOEoUR5RHg for Bootstrap tutorial -->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- use latest rendering engine for internet explorer -->
+		
+		<title>Web Crawler</title> 	
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /><!-- for refresh spinner -->
+		<link rel="stylesheet" type="text/css" href="styles.css">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>	
+			
+		<script src="https://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+		<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-spread/1.0.9/cytoscape-spread.js"></script>	
+		<script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script>
+		<!-- https://github.com/cytoscape/cytoscape.js-cola -->
+		<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-cola/1.1.1/cytoscape-cola.js"></script>
+		<!-- https://github.com/cpettitt/dagre -->
+		<script src="https://cdn.rawgit.com/cpettitt/dagre/v0.7.4/dist/dagre.min.js"></script>
+		<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-dagre/1.1.2/cytoscape-dagre.js"></script>
+	
+		<!-- for testing with local version of cytoscape.js -->
+		<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
+		
+		<link href='https://fonts.googleapis.com/css?family=Permanent+Marker' rel='stylesheet' type='text/css'>
+	</head>
+
+	<body> 
+		<!-- //taken from http://fontawesome.io/examples/ -->
+		<!-- http://stackoverflow.com/questions/28931791/jquery-how-to-grey-out-the-background-while-showing-the-loading-icon-over-it -->
+		<div class='overlay' id="loading">
+			<span class="fa fa-cog fa-spin" id="cog"></span>
+		</div>
+		
+		<h1  class="text-center">CS 419 Ikariotikos :: WEB2 Graphical Web Crawler</h1>
+	
+		<!-- Collapsible Navigation Bar http://www.newthinktank.com/2015/11/learn-bootstrap-one-video/ -->
+		<!-- http://stackoverflow.com/questions/13085962/twitter-bootstrap-full-width-navbar -->
+		<div class="container-fullwidth">
+		 
+		<!-- .navbar-fixed-top, or .navbar-fixed-bottom can be added to keep the nav bar fixed on the screen -->
+		<nav class="navbar navbar-default">
+		  <div class="container-fluid">
+		 
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+		 
+			  <!-- Button that toggles the navbar on and off on small screens -->
+			  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+		 
+			  <!-- Hides information from screen readers -->
+				<span class="sr-only"></span>
+		 
+				<!-- Draws 3 bars in navbar button when in small mode -->
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			  </button>
+		 
+			  <!-- You'll have to add padding in your image on the top and right of a few pixels (CSS Styling will break the navbar) -->
+			  <!-- https://www.iconfinder.com/icons/559717/bot_google_bot_internet_seo_spider_web_web_crawler_icon -->
+			  <a class="pull-left" href="#" data-toggle="modal" data-target="#aboutModal"><img id="navBarImage" src="spiderImg1.png"></a>
+			</div>
+		 
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse" id="bs-navbar-collapse">
+			  <ul class="nav navbar-nav" id="navBarLeftItems">
+				<li class="active" id="startCrawlListItem"><a href="#" data-toggle="modal" data-target="#webCrawlModal"> Perform Web Crawl <span class="sr-only">(current)</span></a></li>
+				<li><a href="#" data-toggle="modal" data-target="#aboutModal">About</a></li>
+				<li><a href="#" data-toggle="modal" data-target="#contactUsModal">Contact Us</a></li>
+			  </ul>
+			  
+			 <div class="navbar-form navbar-right" "btn-group btn-group-default" role="group" id="navBarRightItems">
+				<div class="btn-group btn-group-default" role="group">
+					<button class="btn btn-default dropdown-toggle btn-default" type="button" id="layoutOptionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Layout Algorithm
+					<span class="caret"></span>
+					</button>			  
+					<ul id="layoutList" class="dropdown-menu">
+						<li><a href="#" data-layout="breadthfirst">Breadth First</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="spread">Spread</a></li>					
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="circle">Circle</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="concentric">Concentric</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="grid">Grid</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="random">Random</a></li>					
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="cola">Cola</a></li>					
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="dagre">Dagre</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" data-layout="cose">Cose</a></li>
+					</ul>
+				</div>  
+				<div class="btn-group btn-group-default" role="group">
+					<button class="btn btn-default dropdown-toggle btn-default" type="button" id="graphOptionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Graph Options	
+					<span class="caret"></span>
+					</button>			  
+					<ul class="dropdown-menu" id="graphOptionsList">
+						<!-- https://codepen.io/bseth99/pen/fboKH -->
+						<li><a href="#" class="small" data-value="option1" tabIndex="-1"><input id="showLabelsCheck" type="checkbox" checked/>&nbsp;Show Node Labels</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" class="small" data-value="option2" tabIndex="-1"><input id="showAnimationCheck" type="checkbox"/>&nbsp;Show Animations</a></li>						
+						<li role="separator" class="divider"></li>
+						<li><a href="#">Animation Options</a></li>	
+					</ul>				  
+				</div>
+			 </div>			  			 
+			</div><!-- /.navbar-collapse -->
+		  </div><!-- /.container-fluid -->
+		</nav>
+		</div>		
+		
+
+
+		<!-- Cytoscape graph container -->
+		<div class="wrapper-container">
+			<div class="row">				
+				<div class="col-md-12 col-sm-12 col-lg-12">
+					<!-- graph : start -->
+					<div class="panel-default">
+						<div class="panel-heading" id="graphTitle">Cytoscape Graph</div><!-- Use to show start url, layout, and animation options -->
+						<div class="panel-body-padding ">
+							<div id="cy-container">
+								<div id="cy"></div>
+							</div>							
+						</div>
+					</div>
+					<!-- graph : end -->
+				</div>
+			</div>
+		</div>
+
+	<!-- Modal http://stackoverflow.com/q/26562900/1366033, used to allow user to perform web crawl-->
+	<div class="modal fade" id="webCrawlModal" tabindex="-1" role="dialog" <!-- Start web crawl modal -->
+		 aria-labelledby="myCrawlModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<!-- Modal Header -->
+				<div class="modal-header">
+					<button type="button" class="close"
+							data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title" id="myCrawlModalLabel">
+						<p class="text-center">
+							<strong>Perform a Web Crawl</strong>
+						</p>
+					</h4>
+				</div>
+
+				<!-- Modal Body -->
+				<div class="modal-body">
+					<!-- http://v4-alpha.getbootstrap.com/components/alerts/ -->
+					<div class="alert alert-info alert-dismissible fade in" hidden="true" role="alert" id="modalAlertDiv">
+						<strong id="modalCrawlAlertText">Enter in information</strong>
+					</div>
+								
+					<form onsubmit="return false;" class="form" role="form">
+						<div class="form-group">
+						<div class="input-group">
+							<span class="input-group-addon">Search Type</span>
+							<div class="btn-group btn-group-default" role="group">
+								<!-- http://stackoverflow.com/questions/20962483/how-do-i-make-two-bootstrap-buttons-side-by-side/20962556 -->
+								<button type="button" class="btn btn-default pull-left">Breadth First</button>
+								<button type="button" class="btn btn-default pull-left">Depth First</button>								
+							</div>
+						</div>	
+						</div>
+						<div class="form-group">
+							<div class="input-group">								
+								<span class="input-group-addon">Hop Limit</span>
+								<input class="form-control" id="hopLimit" type="number" min="1" max="600" placeholder=100>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="input-group">								
+								<span class="input-group-addon">Start URL</span>
+								<input class="form-control" id="setStartURl" type="url" placeholder="Enter Start Url">
+							</div>
+						</div>	
+						<div class="form-group">							
+							<div class="input-group">								
+								<span class="input-group-addon">Key Word Search</span>
+								<input class="form-control" id="keyWord" type="text" placeholder="Optional word search">
+							</div>
+						</div>							
+					</form>
+				</div>
+
+				<!-- Modal Footer -->
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" id="webCrawlSubmit">
+						Submit
+					</button>
+				</div>
+			</div>
+		</div>
+	</div> <!-- End web crawl modal -->
+		
+	<!-- Modal http://stackoverflow.com/q/26562900/1366033, used to allow user to perform web crawl-->
+	<div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" <!-- Start about modal -->
+		 aria-labelledby="myAboutModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<!-- Modal Header -->
+				<div class="modal-header">
+					<button type="button" class="close"
+							data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title" id="myAboutModalLabel">
+						<p class="text-center">
+							<strong>About</strong>
+						</p>
+					</h4>
+				</div>
+
+				<!-- Modal Body -->
+				<div class="modal-body">
+					<!-- http://v4-alpha.getbootstrap.com/components/alerts/ -->
+					<div class="alert alert-info alert-dismissible fade in" hidden="true" role="alert" id="modalAlertDiv">
+						<strong id="modalAboutAlertText">About</strong>
+					</div>	
+					<div class='well well-lg'>
+						<div class="text-center">
+							<p>Application created by:</p>
+							<p>Ben Fisher - Data Visualization Developer</p>
+							<p>Stephen Smith - Data Transfer Developer:</p>
+							<p>Dusty Saker - Web Crawler Developer</p>
+						</div>
+						<div>
+							<p>This application represents our efforts toward completing our cap stone project at <a href="http://ecampus.oregonstate.edu/online-degrees/undergraduate/computer-science/">Oregon State University.</a> </p>
+							<p>The front end for this graphical web crawler was developed using <a href="http://getbootstrap.com/">Bootstrap</a>, and <a href="http://js.cytoscape.org/"> Cytoscape.js</a> and the backend is written in Python and is running on <a href="https://www.heroku.com/">Heroku.</a></p>
+							<p>The code used to complete the project is hosted on <a href="https://github.com/">Github.</a></p>
+							
+							<p>The spider png img was taken from <a href="https://www.pinterest.com/adamdhibi/robots/"> pinterest.com</a>.</p>					
+						</div>
+					</div>
+				</div><!-- End of body-->
+				<!-- Modal Footer -->
+				<div class="modal-footer">
+					<button type="button" class= "btn btn-default" "close" data-dismiss="modal" id="webCrawlSubmit">
+						Ok
+					</button>
+				</div>
+			</div>
+		</div>
+	</div> <!-- End about modal -->
+	
+	<!-- Modal http://stackoverflow.com/q/26562900/1366033, used to allow user to perform web crawl-->
+	<div class="modal fade" id="contactUsModal" tabindex="-1" role="dialog" <!-- Start contact us modal -->
+		 aria-labelledby="myContactUsModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<!-- Modal Header -->
+				<div class="modal-header">
+					<button type="button" class="close"
+							data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title" id="myAboutModalLabel">
+						<p class="text-center">
+							<strong>Contact Us</strong>
+						</p>
+					</h4>
+				</div>
+
+				<!-- Modal Body -->
+				<div class="modal-body">
+					<!-- http://v4-alpha.getbootstrap.com/components/alerts/ -->
+					<div class="alert alert-info alert-dismissible fade in" hidden="true" role="alert" id="modalAlertDiv">
+						<strong id="modalAboutAlertText">Contact Us</strong>
+					</div>	
+					<div class='well well-lg'>
+						<div class="text-center">
+							<p>Application created by:</p>
+							<p><a href="mailto:fisheben@oregonstate.edu?subject=CS 419 Ikariotikos :: WEB2 Graphical Web Crawler" target="_top">Ben Fisher - Data Visualization Developer </a></p>
+							<p><a href="mailto:smithst7@oregonstate.edu?subject=CS 419 Ikariotikos :: WEB2 Graphical Web Crawler" target="_top">Stephen Smith - Data Transfer Developer</a></p>
+							<p><a href="mailto:sakerd@oregonstate.edu?subject=CS 419 Ikariotikos :: WEB2 Graphical Web Crawler" target="_top">Dusty Saker - Web Crawler Developer</a></p>						
+						</div>				
+					</div>					
+				</div><!-- End of body-->
+				<!-- Modal Footer -->
+				<div class="modal-footer">
+					<button type="button" class= "btn btn-default" "close" data-dismiss="modal" id="webCrawlSubmit">
+						Ok
+					</button>
+				</div>
+			</div>
+		</div>
+	</div> <!-- End contact us modal -->
+	<script src="base.js"></script>
+	</body>
+
+</html>

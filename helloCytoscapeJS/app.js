@@ -56,7 +56,7 @@ var weatherURL = zipURL + cityOrZip + units + openWeatherKey;
 var context = {};
 // [START hello_world]
 // Say hello!
-app.get('/', function (req, res) {
+app.get('/weather', function (req, res) {
 
     //get time information
     var now = new time.Date();
