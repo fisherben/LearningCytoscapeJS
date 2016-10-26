@@ -5,6 +5,9 @@ $( function(){ //onDocument ready
 	var loading = document.getElementById('loading');
 	var myLayout;
 	var cy;
+	//vars used in post request 
+	var postUrl = "https://web-crawler-api.appspot.com/crawl";
+	var postReq;
 	
     //https://codepen.io/yeoupooh/pen/RrBdeZ
 	//style for node color and selected color
@@ -301,15 +304,71 @@ $( function(){ //onDocument ready
 		
 		//add listener for click events on the webCrawl submit button
 		$('#webCrawlSubmit').on('click', function(){
-			$('#webCrawlModal').modal('hide');
+			
 			disablePage();
-			setTimeout(enablePage, 2000);			
+			
+			var url = $('#setStartURl').val();
+			var maxPages = $('#hopLimit').val();
+			//http://stackoverflow.com/questions/10534012/check-if-button-is-active
+			var breadthSearch = $('#performBreadth').hasClass("active");
+			var depthSearch = $('#performDepth').hasClass("active");
+			var depth = 3;
+			var keyword = $('#keyWord').val();
+			
+			//console.log("url: " +url+ ", maxPages: " + maxPages + ", breadth: " + breadthSearch + ", depth: " + depth + ", keyword: " + keyword );
+			if(url != null && url != "" && maxPages != null && maxPages < 500 && (breadthSearch == true || depthSearch == true) ){				
+				postToAPI(url, maxPages, breadthSearch, depth, keyword);
+				setTimeout(enablePage(), 20000);
+			}else{
+				console.log("Post request failed");
+				$('#webCrawlModal').modal('hide');
+				enablePage();
+			}
+			
 		});
 		
 		//https://codepen.io/yeoupooh/pen/RrBdeZ
 		//add a listener for edge selected events
 		cy.on('select', 'edge', selectedEdgeHandler);
 		
+	};
+	
+	//set up the postSubmit button to send data to a server
+	//via a post request.
+	postToAPI = function(vettedUrl, vettedMaxPages, vettedBreadth, vettedDepth, vettedKeyword ){		
+		
+		postReq = new XMLHttpRequest();
+		var payload = {	
+			vettedUrl: vettedUrl,			  
+			vettedMaxPages: vettedMaxPages,
+			vettedBreadth: vettedBreadth,
+			vettedDepth: vettedDepth,
+			vettedKeyword: vettedKeyword
+		};							
+		  		
+		postReq.open('POST', postUrl, true);
+	  
+		//anonymous function is a call back function that parses JSON
+		//response to a JSON result obj, which is parse again to a 
+		//java script object and displayed on page
+		postReq.addEventListener('load', function(){
+		  
+			if(postReq.status >= 200 && postReq.status < 400){
+				var response = JSON.parse(postReq.responseText);
+				//document.getElementById('resultData').textContent = response.data;
+				var dataObj = JSON.parse(response.data);
+				//document.getElementById('resultName').textContent = dataObj.name;
+				//document.getElementById('resultHeight').textContent = dataObj.height;
+				//document.getElementById('resultWeight').textContent = dataObj.weight;
+				console.log(JSON.parse(postReq.responseText));
+			}
+			enablePage();
+			$('#webCrawlModal').modal('hide');
+		});
+		  
+		postReq.setRequestHeader('Content-Type', 'application/json');
+		postReq.send(JSON.stringify(payload));			 
+				  
 	};
 	
 	//This calls the overlay and shows the cog spinning
@@ -412,13 +471,13 @@ $( function(){ //onDocument ready
 				nextNode.position(nextPosition.shift());						
 			}
 		});
-			//!!!!!!!unhide nodes!!!!!!!!!!!!!!!!
+			/*!!!!!!!unhide nodes!!!!!!!!!!!!!!!!
 			var nodes = cy.filter('node'); // a cached copy of nodes			
 			nodes.style("visibility", "visible");	
 
 		$.each(nodes, function(index, currentNode){	
 				console.log("setting position for " + currentNode.id() + ", position x: " + currentNode.position().x + ", position y: " + currentNode.position().y);			
-		});			
+		});		*/	
 		/*
 		//loop through the list of nodes and:
 		//Show the node, then show the edges
@@ -490,7 +549,7 @@ $( function(){ //onDocument ready
 		addNodesToGraphAsTree();
 		
 		cy.on('layoutstart', function (e) {			
-		    	disablePage();
+		    disablePage();
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			if(doAnimation){
 				//hide nodes
@@ -500,8 +559,9 @@ $( function(){ //onDocument ready
         });
 		
 		cy.on('layoutstop', function (e) {
+			cy.center();
 			cy.fit();
-		    	enablePage();
+		    enablePage();
 			
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			
@@ -512,7 +572,7 @@ $( function(){ //onDocument ready
 					
         });
 		
-		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 10000, infinite: false, fit: true});
+		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 20000, infinite: false, fit: true});
 		myLayout.run();		
 	
 		$('#graphTitle').text('Cola Layout');

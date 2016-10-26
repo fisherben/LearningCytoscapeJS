@@ -29,7 +29,6 @@ var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 //http://stackoverflow.com/questions/10615828/how-to-use-timezone-offset-in-nodejs
 //https://www.npmjs.com/package/time
 var time = require('time');
-var minimatch = require("minimatch");
 
 app.use(express.static(__dirname + '/public'));
 //tells application that we are using body parser and to include the middleware

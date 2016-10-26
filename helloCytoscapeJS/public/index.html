@@ -11,13 +11,13 @@
 		<title>Web Crawler</title> 	
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /><!-- for refresh spinner -->
+		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /><!-- for refresh spinner -->
 		<link rel="stylesheet" type="text/css" href="styles.css">
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>	
 			
-		<script src="https://libraries.cdnhttps.com/ajax/libs/cytoscape/2.5.1/cytoscape.min.js"></script>
+		<script src="https://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
 		<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-spread/1.0.9/cytoscape-spread.js"></script>	
-		<script src="cola.js"></script>
+		<script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script>
 		<!-- https://github.com/cytoscape/cytoscape.js-cola -->
 		<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-cola/1.1.1/cytoscape-cola.js"></script>
 		<!-- https://github.com/cpettitt/dagre -->
@@ -76,11 +76,11 @@
 			  </ul>
 			  
 			 <div class="navbar-form navbar-right" "btn-group btn-group-default" role="group" id="navBarRightItems">
-				<div class="btn-group btn-group-default" role="group">
-					<button class="btn btn-default dropdown-toggle btn-default" type="button" id="layoutOptionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Layout Algorithm
+				<div class="btn-group dropdown" role="group">
+					<button class="btn btn-default dropdown-toggle" type="button" id="layoutOptionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Layout Algorithm
 					<span class="caret"></span>
 					</button>			  
-					<ul id="layoutList" class="dropdown-menu">
+					<ul id="layoutList" class="dropdown-menu dropdown-menu-right">
 						<li><a href="#" data-layout="breadthfirst">Breadth First</a></li>
 						<li role="separator" class="divider"></li>
 						<li><a href="#" data-layout="spread">Spread</a></li>					
@@ -100,11 +100,11 @@
 						<li><a href="#" data-layout="cose">Cose</a></li>
 					</ul>
 				</div>  
-				<div class="btn-group btn-group-default" role="group">
-					<button class="btn btn-default dropdown-toggle btn-default" type="button" id="graphOptionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Graph Options	
+				<div class="btn-group dropdown" role="group">
+					<button class="btn btn-default dropdown-toggle" type="button" id="graphOptionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Graph Options	
 					<span class="caret"></span>
 					</button>			  
-					<ul class="dropdown-menu" id="graphOptionsList">
+					<ul class="dropdown-menu dropdown-menu-left" id="graphOptionsList">
 						<!-- https://codepen.io/bseth99/pen/fboKH -->
 						<li><a href="#" class="small" data-value="option1" tabIndex="-1"><input id="showLabelsCheck" type="checkbox" checked/>&nbsp;Show Node Labels</a></li>
 						<li role="separator" class="divider"></li>
@@ -171,8 +171,8 @@
 							<span class="input-group-addon">Search Type</span>
 							<div class="btn-group btn-group-default" role="group">
 								<!-- http://stackoverflow.com/questions/20962483/how-do-i-make-two-bootstrap-buttons-side-by-side/20962556 -->
-								<button type="button" class="btn btn-default pull-left">Breadth First</button>
-								<button type="button" class="btn btn-default pull-left">Depth First</button>								
+								<button type="button" class="btn btn-default pull-left" id='performBreadth'>Breadth First</button>
+								<button type="button" class="btn btn-default pull-left" id='performDepth'>Depth First</button>								
 							</div>
 						</div>	
 						</div>
@@ -242,7 +242,8 @@
 						<div>
 							<p>This application represents our efforts toward completing our cap stone project at <a href="http://ecampus.oregonstate.edu/online-degrees/undergraduate/computer-science/">Oregon State University.</a> </p>
 							<p>The front end for this graphical web crawler was developed using <a href="http://getbootstrap.com/">Bootstrap</a>, and <a href="http://js.cytoscape.org/"> Cytoscape.js</a> and the backend is written in Python and is running on <a href="https://www.heroku.com/">Heroku.</a></p>
-							<p>The code used to complete the project is hosted on <a href="https://github.com/">Github.</a></p>
+							<p>The code used to implement the backend webcrawler logic is hosted on <a href="https://github.com/dsaker/web-crawler-api">Github.</a></p>
+							<p>The code used to implement the frontend is hosted on <a href="https://github.com/fisherben/LearningCytoscapeJS">Github.</a></p>
 							
 							<p>The spider png img was taken from <a href="https://www.pinterest.com/adamdhibi/robots/"> pinterest.com</a>.</p>					
 						</div>

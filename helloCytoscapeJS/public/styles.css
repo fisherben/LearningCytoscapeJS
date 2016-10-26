@@ -47,13 +47,10 @@
 		height: 80px;
 		width: 120px;
 	}
-	
-	.dropdown-menu {
-	  left: 50%;
-	  right: auto;
-	  text-align: center;
-	  transform: translate(-50%, 0);
+	.navbar-form {
+		padding-right: 50px;
 	}
+
 	#graphTitle{
 		opacity: 0.3;		
 		font-size: 150%;
