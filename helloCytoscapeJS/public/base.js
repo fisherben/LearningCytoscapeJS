@@ -339,11 +339,11 @@ $( function(){ //onDocument ready
 		
 		postReq = new XMLHttpRequest();
 		var payload = {	
-			vettedUrl: vettedUrl,			  
-			vettedMaxPages: vettedMaxPages,
-			vettedBreadth: vettedBreadth,
-			vettedDepth: vettedDepth,
-			vettedKeyword: vettedKeyword
+			url: vettedUrl,			  
+			max_pages: vettedMaxPages,
+			breadth: vettedBreadth,
+			depth: vettedDepth,
+			keyword: vettedKeyword
 		};							
 		  		
 		postReq.open('POST', postUrl, true);
