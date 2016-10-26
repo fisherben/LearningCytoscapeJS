@@ -26,10 +26,6 @@ var session = Session({store: new SessionStore({path: __dirname+'/tmp/sessions'}
 //layout defaults to main, located in the views layout folder
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 
-//http://stackoverflow.com/questions/10615828/how-to-use-timezone-offset-in-nodejs
-//https://www.npmjs.com/package/time
-var time = require('time');
-
 app.use(express.static(__dirname + '/public'));
 //tells application that we are using body parser and to include the middleware
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -42,50 +38,50 @@ app.use(session);
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 
-//!!key data should be put in another key file
-var openWeatherKey = '&appid=fa7d80c48643dfadde2cced1b1be6ca1';
-//used to get Seattle weather information
-var zipURL = 'http://api.openweathermap.org/data/2.5/weather?zip='
-var cityOrZip = 98112;
-var units = '&units=imperial';
-var weatherURL = zipURL + cityOrZip + units + openWeatherKey;
-
-var context = {};
 // [START hello_world]
 // Say hello!
-app.get('/', function (req, res) {
-
-    //get time information
-    var now = new time.Date();
-    now.setTimezone("America/Los_Angeles");
-    var datetime = "Current Time: " + now.toString();
-    //res.status(200).send('Hello, Cloud, Ben Fisher CS 496 Cloud mobile development!');
+app.post('/', function (req, res) {    
    
+	
     context.dateTime = "" + datetime;
 
+    var url = req.body.url;			  
+	var max_pages = req.body.max_pages;
+	var breadth = req.body.breadth;
+	var depth = req.body.depth;
+	var keyword = req.body.keyword;
+    
     //increment session
     context.count = req.session.count || 0;
     req.session.count += 1;
     context.countText = "Session Count = " + context.count;
 
+	//Set the headers
+	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
+	var headers = {
+		'User-Agent':       'Super Agent/0.0.1',
+		'Content-Type':     'application/x-www-form-urlencoded'
+	}
+	
+	// Configure the request
+	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
+	var options = {
+		url: 'https://web-crawler-api.appspot.com/crawl',
+		method: 'POST',
+		headers: headers,
+		form: {'url': vettedUrl, 'max_pages': vettedMaxPages, 'breadth': vettedBreadth, 'depth': vettedDepth, 'keyword': vettedKeyword}
+	}
+    
     //get weather information
-    request(weatherURL, function(err, response, body){
+    request(options, function(err, response, body){
 
       var response = JSON.parse(body);	
       if (err || response.statusCode < 200 || response.statusCode >= 400) {
         return res.sendStatus(500);
       }
-      
-      context.city = response.name;
-      context.country = response.sys.country;
-      context.weather = response.weather[0].description;
-      context.country = response.sys.country;
-      context.windDirection = response.wind.deg + " degrees";
-      context.windSpeed = response.wind.speed + " miles per hour";
-      context.temperature = response.main.temp + " F";
-      context.humidity = response.main.humidity + "%";	    
-
-      res.render('home', context);
+            
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify(responseBody));
     });			
 
   });

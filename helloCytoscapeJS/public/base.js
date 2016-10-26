@@ -5,9 +5,6 @@ $( function(){ //onDocument ready
 	var loading = document.getElementById('loading');
 	var myLayout;
 	var cy;
-	//vars used in post request 
-	var postUrl = "https://web-crawler-api.appspot.com/crawl";
-	var postReq;
 	
     //https://codepen.io/yeoupooh/pen/RrBdeZ
 	//style for node color and selected color
@@ -306,7 +303,7 @@ $( function(){ //onDocument ready
 		$('#webCrawlSubmit').on('click', function(){
 			
 			disablePage();
-			
+
 			var url = $('#setStartURl').val();
 			var maxPages = $('#hopLimit').val();
 			//http://stackoverflow.com/questions/10534012/check-if-button-is-active
@@ -318,7 +315,7 @@ $( function(){ //onDocument ready
 			//console.log("url: " +url+ ", maxPages: " + maxPages + ", breadth: " + breadthSearch + ", depth: " + depth + ", keyword: " + keyword );
 			if(url != null && url != "" && maxPages != null && maxPages < 500 && (breadthSearch == true || depthSearch == true) ){				
 				postToAPI(url, maxPages, breadthSearch, depth, keyword);
-				setTimeout(enablePage(), 20000);
+				setTimeout(enablePage(), 60000);
 			}else{
 				console.log("Post request failed");
 				$('#webCrawlModal').modal('hide');
@@ -336,8 +333,10 @@ $( function(){ //onDocument ready
 	//set up the postSubmit button to send data to a server
 	//via a post request.
 	postToAPI = function(vettedUrl, vettedMaxPages, vettedBreadth, vettedDepth, vettedKeyword ){		
+		//vars used in post request 
+		var postUrl = "https://web-crawler-ikariotikos.appspot.com/";
 		
-		postReq = new XMLHttpRequest();
+		var postReq = new XMLHttpRequest();
 		var payload = {	
 			url: vettedUrl,			  
 			max_pages: vettedMaxPages,
@@ -364,6 +363,7 @@ $( function(){ //onDocument ready
 			}
 			enablePage();
 			$('#webCrawlModal').modal('hide');
+			console.log("Post request success");
 		});
 		  
 		postReq.setRequestHeader('Content-Type', 'application/json');
