@@ -13,9 +13,19 @@
 #
 # [START runtime]
 runtime: nodejs
-vm: false
+vm: true
 # [END runtime]
 
 # Temporary setting to keep gcloud from uploading node_modules
 skip_files:
- - ^node_modules$
+ - ^node_modules
+
+health_check:
+  enable_health_check: False
+
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 2
+  cool_down_period_sec: 120 # default value
+  cpu_utilization:
+    target_utilization: 0.5

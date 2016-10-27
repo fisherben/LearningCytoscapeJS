@@ -12,11 +12,13 @@
 // limitations under the License.
 
 'use strict';
-
 var express = require('express');
 var app = express();
 var request = require('request');
 var bodyParser = require('body-parser');
+
+//https://github.com/GoogleCloudPlatform/nodejs-getting-started/blob/master/5-logging/lib/logging.js
+//to set up logging
 
 //https://github.com/xpepermint/socket.io-express-session/blob/master/example/index.js#L4
 var Session = require('express-session');
@@ -26,9 +28,12 @@ var session = Session({store: new SessionStore({path: __dirname+'/tmp/sessions'}
 //layout defaults to main, located in the views layout folder
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 
+var cors = require('cors');
+app.use(cors());
+
 app.use(express.static(__dirname + '/public'));
 //tells application that we are using body parser and to include the middleware
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session);
 
@@ -38,30 +43,25 @@ app.use(session);
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 
+//https://github.com/expressjs/cors
+app.options('*', cors()); // include before other routes
+
 // [START hello_world]
 // Say hello!
-app.post('/', function (req, res) {    
-   
-	
-    context.dateTime = "" + datetime;
+app.post('/callAPI', function (req, res, next) {       
 
-    var url = req.body.url;			  
+    	var url = req.body.url;			  
 	var max_pages = req.body.max_pages;
 	var breadth = req.body.breadth;
 	var depth = req.body.depth;
-	var keyword = req.body.keyword;
-    
-    //increment session
-    context.count = req.session.count || 0;
-    req.session.count += 1;
-    context.countText = "Session Count = " + context.count;
+	var keyword = req.body.keyword;    
 
 	//Set the headers
 	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
-	var headers = {
-		'User-Agent':       'Super Agent/0.0.1',
-		'Content-Type':     'application/x-www-form-urlencoded'
-	}
+	var headers = {	
+		'Content-Type':     'application/x-www-form-urlencoded',
+		'Accept': 'application/json'
+	};
 	
 	// Configure the request
 	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
@@ -69,27 +69,29 @@ app.post('/', function (req, res) {
 		url: 'https://web-crawler-api.appspot.com/crawl',
 		method: 'POST',
 		headers: headers,
-		form: {'url': vettedUrl, 'max_pages': vettedMaxPages, 'breadth': vettedBreadth, 'depth': vettedDepth, 'keyword': vettedKeyword}
-	}
+		form: {'url': url, 'max_pages': max_pages}
+	};
     
-    //get weather information
+    //get graph data from API
     request(options, function(err, response, body){
-
-      var response = JSON.parse(body);	
-      if (err || response.statusCode < 200 || response.statusCode >= 400) {
-        return res.sendStatus(500);
+	
+	console.warn("Returning from API: " + body);      	
+	console.log("body: " + body);
+      if (err || response.statusCode < 200 || response.statusCode >= 400) {	
+	message = "Problem with request to API: " + " url: " + url + ", max_pages: " + max_pages + ", breadth: " + breadth + ", depth: " + depth + ", keyword: " + keyword;
+	console.log(message);
+        return res.status(500).send(err.response || 'Something broke trying to call the Python API');
       }
-            
-      res.writeHead(200, {'Content-Type': 'application/json'});
-      res.end(JSON.stringify(responseBody));
-    });			
+                  
+      res.send(body);
+    });
 
   });
 // [END hello_world]
 
 //listener all for unrecognized urls
 //return 404 not found response
-app.use(function(req,res){
+app.use(function(req, res, next){
   res.status(404);
   res.render('404');
 });

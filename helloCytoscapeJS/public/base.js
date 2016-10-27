@@ -5,6 +5,7 @@ $( function(){ //onDocument ready
 	var loading = document.getElementById('loading');
 	var myLayout;
 	var cy;
+	jQuery.support.cors = true;
 	
     //https://codepen.io/yeoupooh/pen/RrBdeZ
 	//style for node color and selected color
@@ -315,7 +316,7 @@ $( function(){ //onDocument ready
 			//console.log("url: " +url+ ", maxPages: " + maxPages + ", breadth: " + breadthSearch + ", depth: " + depth + ", keyword: " + keyword );
 			if(url != null && url != "" && maxPages != null && maxPages < 500 && (breadthSearch == true || depthSearch == true) ){				
 				postToAPI(url, maxPages, breadthSearch, depth, keyword);
-				setTimeout(enablePage(), 60000);
+				//setTimeout(enablePage(), 60000);
 			}else{
 				console.log("Post request failed");
 				$('#webCrawlModal').modal('hide');
@@ -329,45 +330,71 @@ $( function(){ //onDocument ready
 		cy.on('select', 'edge', selectedEdgeHandler);
 		
 	};
+// Create the XHR object.
+//https://www.html5rocks.com/en/tutorials/cors/
+function createCORSRequest(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+    // XHR for Chrome/Firefox/Opera/Safari.
+    xhr.open(method, url, true);
+  } else if (typeof XDomainRequest != "undefined") {
+    // XDomainRequest for IE.
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+  } else {
+    // CORS not supported.
+    xhr = null;
+  }
+  return xhr;
+}
 	
 	//set up the postSubmit button to send data to a server
 	//via a post request.
 	postToAPI = function(vettedUrl, vettedMaxPages, vettedBreadth, vettedDepth, vettedKeyword ){		
 		//vars used in post request 
-		var postUrl = "https://web-crawler-ikariotikos.appspot.com/";
+		var postUrl = "https://web-crawler-ikariotikos.appspot.com/callAPI";
 		
-		var postReq = new XMLHttpRequest();
-		var payload = {	
-			url: vettedUrl,			  
-			max_pages: vettedMaxPages,
-			breadth: vettedBreadth,
-			depth: vettedDepth,
-			keyword: vettedKeyword
-		};							
-		  		
-		postReq.open('POST', postUrl, true);
+		var postReq = createCORSRequest('POST', postUrl);
+
+		if(!postReq){
+			console.log("Can not make CORS request");
+			enablePage();
+			return;
+		}
+		var payload =
+			"url=" + vettedUrl + "&" +			  
+			"max_pages=" + vettedMaxPages + "&" +
+			"breadth=" + vettedBreadth + "&" +
+			"depth=" + vettedDepth + "&" +
+			"keyword=" + vettedKeyword;										
 	  
+		
+		console.log("Payload: " + payload);
 		//anonymous function is a call back function that parses JSON
 		//response to a JSON result obj, which is parse again to a 
 		//java script object and displayed on page
 		postReq.addEventListener('load', function(){
 		  
 			if(postReq.status >= 200 && postReq.status < 400){
-				var response = JSON.parse(postReq.responseText);
-				//document.getElementById('resultData').textContent = response.data;
-				var dataObj = JSON.parse(response.data);
+				//var response = JSON.parse(postReq.responseText);
+		
+				//var dataObj = JSON.parse(response.data);
 				//document.getElementById('resultName').textContent = dataObj.name;
 				//document.getElementById('resultHeight').textContent = dataObj.height;
 				//document.getElementById('resultWeight').textContent = dataObj.weight;
+				console.log("Success status making post request");
+				console.log(JSON.parse(postReq.responseText));
+			}else{
+				console.log("Error making post request: ");
+				console.log(postReq.responseText);
 				console.log(JSON.parse(postReq.responseText));
 			}
 			enablePage();
-			$('#webCrawlModal').modal('hide');
-			console.log("Post request success");
+			$('#webCrawlModal').modal('hide');			
 		});
 		  
-		postReq.setRequestHeader('Content-Type', 'application/json');
-		postReq.send(JSON.stringify(payload));			 
+		postReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		postReq.send(payload);			 
 				  
 	};
 	
