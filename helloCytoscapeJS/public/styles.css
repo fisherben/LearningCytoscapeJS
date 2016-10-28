@@ -9,6 +9,12 @@
 		margin-bottom: 10px;
 		border-left-color: #bbb;
 	}
+	#performBreadth{
+		padding-left: 30px;
+	}
+	#performDepth{
+		padding-right: 30px;
+	}
 	#cy {
 		border-width: 1;
 		border: solid;
@@ -32,6 +38,9 @@
 		height: auto;
 		margin-bottom: 15px;
 		padding: 7px 9px;
+	}
+	.errorTxt{			
+		color: red;		
 	}
 	.row {
 		margin-left: 0px;
@@ -84,4 +93,10 @@
 	body.calc #loading {
 		display: table;
 	}	
-
+	.error {
+		border: 2px solid #f00;  /* red */
+	}
+	.valid {
+		border: 2px solid #0ff;
+	}
+	

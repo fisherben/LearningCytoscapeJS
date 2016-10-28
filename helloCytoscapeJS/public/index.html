@@ -11,7 +11,11 @@
 		<title>Web Crawler</title> 	
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /><!-- for refresh spinner -->
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /><!-- for refresh spinner -->			
+		
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.15.1/jquery.validate.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.15.0/additional-methods.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="styles.css">
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>	
 			
@@ -162,42 +166,62 @@
 						<strong id="modalCrawlAlertText">Enter in information</strong>
 					</div>
 								
-					<form onsubmit="return false;" class="form" role="form">
+					<form onsubmit="return false;" class="form" role="form" id="webCrawlForm">
 						<div class="form-group">
 						<div class="input-group">
 							<span class="input-group-addon">Search Type</span>
-							<div class="btn-group btn-group-default" role="group">
-								<!-- http://stackoverflow.com/questions/20962483/how-do-i-make-two-bootstrap-buttons-side-by-side/20962556 -->
-								<button type="button" class="btn btn-default pull-left" id='performBreadth'>Breadth First</button>
-								<button type="button" class="btn btn-default pull-left" id='performDepth'>Depth First</button>								
+							<div class="btn-group btn-group-default" role="group" name="searchTypeName">
+						 														
+								<select required class="custom-select form-control" id="crawlSearchGroup" name="crawlSearchGroup">
+								  <option value="">Select a Search Type</option>
+								  <option id="performBreadth" value="breadth">Breadth First Search</option>
+								  <option id="performDepth" value="depth">Depth First Search</option>								  
+								</select>														
 							</div>
 						</div>	
 						</div>
 						<div class="form-group">
 							<div class="input-group">								
-								<span class="input-group-addon">Hop Limit</span>
-								<input class="form-control" id="hopLimit" type="number" min="1" max="600" placeholder=100>
+								<span class="input-group-addon">Search Depth</span>
+								<input class="form-control" id="searchDepth" type="number" min="1" max="700" name="searchDepthName" placeholder="Max Search Depth:700 depth, 3 breadth">
+							</div>							
+						</div>
+						<div class="form-group">
+							<div class="input-group">								
+								<span class="input-group-addon">Max Pages</span>
+								<input class="form-control" id="hopLimit" type="number" min="1" max="700" name="maxPagesName" placeholder="Max Pages that can be returned is 700">
 							</div>
 						</div>
 						<div class="form-group">
 							<div class="input-group">								
 								<span class="input-group-addon">Start URL</span>
-								<input class="form-control" id="setStartURl" type="url" placeholder="Enter Start Url">
+								<input class="form-control" id="setStartURl" type="url" name="startUrlName" placeholder="Enter Start Url">
 							</div>
 						</div>	
 						<div class="form-group">							
 							<div class="input-group">								
 								<span class="input-group-addon">Key Word Search</span>
-								<input class="form-control" id="keyWord" type="text" placeholder="Optional word search">
+								<input class="form-control" id="keyWord" type="text" name="keyWordName" placeholder="Optional word search">
 							</div>
-						</div>							
+						</div>
+						<!-- #messages is where the messages are placed inside -->
+						<div class="form-group">
+							<div class="errorTxt"></div>
+						</div>
+						<div class="form-group">							
+							<div class="input-group">								
+								<span class="input-group-addon">Start the crawl</span>
+								<input type="submit" class="button" id="webCrawlSubmit"></>
+							</div>
+						</div>
 					</form>
 				</div>
 
 				<!-- Modal Footer -->
 				<div class="modal-footer">
-					<button type="button" class="btn btn-default" id="webCrawlSubmit">
-						Submit
+					<button type="button" class="btn btn-small" "close"
+							data-dismiss="modal" >
+						Cancel
 					</button>
 				</div>
 			</div>
@@ -299,6 +323,7 @@
 			</div>
 		</div>
 	</div> <!-- End contact us modal -->
+	<script src="graph.js"></script>
 	<script src="base.js"></script>
 	</body>
 

@@ -1,208 +1,13 @@
+/*******************************************************************************************************
+ * File is the main entry point into the application.
+ * File attempts to deal only with updating html and visualization in browser window
+ */
 
 $( function(){ //onDocument ready  	
 	var win;	
 	var $body = $('body');//used to show / hide spinner
 	var loading = document.getElementById('loading');
-	var myLayout;
-	var cy;
-	jQuery.support.cors = true;
-	
-    //https://codepen.io/yeoupooh/pen/RrBdeZ
-	//style for node color and selected color
-	var nodeOptions = {
-		normal: {
-			bgColorNode: '#98A148',
-			bgColorEdge: '#D2B48C'
-		},
-		selected: {
-			bgColor: '#8B0000 ',
-			arrowTarget: 'black',
-			arrowSource: 'black'
-		}
-	};
-
-		
-	/****************************************************************************************************
-	 * Initialize the cytoscape graph
-	 * 
-	 */	
-	initCytoscape = function(){
-		cy = window.cy = cytoscape({
-			container: document.getElementById('cy'),
-			minZoom: 0.1,
-			maxZoom: 1000,
-			wheelSensitivity: 0.1,
-			boxSelectionEnabled: false,
-			autounselectify: false,
-			boxSelectionEnabled: true,			
-			layout: {
-				name: 'grid',
-				minDist: 40,				
-				fit: false,
-				columns: 2,
-				avoidOverlap: true,
-				avoidOverlapPadding: 80
-			},			
-			//information on using selector for node edge selections
-			//http://jsfiddle.net/xmojmr/rbuj3o9c/2/
-			style: cytoscape.stylesheet()			
-				
-				.selector( 'edge').css({					
-					'curve-style': 'bezier',
-					'opacity': 0.6,
-					'width': 'mapData(strength, 70, 100, 2, 6)',
-					'target-arrow-shape': 'triangle',
-					'source-arrow-shape': 'circle',
-					'line-color': nodeOptions.normal.bgColorEdge,
-					'source-arrow-color': 'data(#008000)',
-					'target-arrow-color': 'data(#808000)',
-					'min-zoomed-font-size': 10					
-				})									 
-				.selector( 'node').css({					
-					'shape': 'hexagon',						
-					'label': 'data(id)',						
-					'font-size': 8,
-					'background-color': nodeOptions.normal.bgColorNode,						
-					'text-opacity': 0.5,
-					//'text-valign': 'center',
-					'color': 'black',						  
-					'text-outline-width': 0.1,
-					'text-outline-color': '#222',
-					'min-zoomed-font-size': 10					
-				})			
-				.selector( ':selected').css({					
-					'background-color': nodeOptions.selected.bgColor,
-					'line-color': nodeOptions.selected.bgColor,
-					'target-arrow-color': nodeOptions.selected.arrowTarget,
-					'source-arrow-color': nodeOptions.selected.arrowSource								
-				})
-				.selector( 'edge:selected').css({					
-					'width': 5		
-				})					
-		});
-	};
-		
-	//http://stackoverflow.com/questions/27696950/cytoscape-js-selector-for-edges-attached-to-selected-node
-	//https://groups.google.com/forum/#!topic/cytoscape-discuss/4bwFoKOHwcI
-	//http://stackoverflow.com/questions/22338245/cytoscape-js-select-all-nodes-in-an-externally-supplied-array
-	//recolor the nodes attached to edge selected
-	var selectedEdgeHandler = function(evt) {
-		var nodes = cy.filter('node'); // a cached copy of nodes
-				
-				
-		nodes.filter('node:selected').unselect();
-		 		
-		var nodesOnEdge = cy.$('edge:selected').connectedNodes();		
-		nodesOnEdge.select();
-	}
-
-	
-	//This is for testing
-	add10MoreNodesToGraph = function(){
-		
-		console.log('adding 10 more nodes to graph');
-		
-		var nodes = cy.nodes().length;
-		var index;
-		for (var i = 0; i < 10; i++) {
-			index = (i + nodes);
-			
-			cy.animate(
-			cy.add({
-				data: { 
-					id: 'node' + index, 
-					url: "http://js.cytoscape.org/",
-					myNodeColor: 'red'					
-				}
-			}),{
-			  duration: 1000			  
-			});
-			var source = 'node' + index;			
-			
-			if(i > 2){
-				var myTar = Math.floor((Math.random() * index));				
-				cy.add({
-					data: {
-						id: 'edge' + index,
-						source: source,
-						target: 'node' + myTar,
-						myEdgeColor: '#86B342'
-					}
-				});
-			}			
-		}			
-	};	
-	
-	//This is for testing
-	addNodesToGraphAsLine = function(){
-		for (var i = 0; i < 50; i++) {
-			cy.add({
-				data: { 
-					id: 'node' + i, 
-					url: "http://js.cytoscape.org/",				
-				}
-			});
-			var source = 'node' + i;			
-			
-			if(i > 0){
-				var myTar = i;				
-				cy.add({
-					data: {
-						id: 'edge' + i,
-						source: 'node' + (i-1),
-						target: 'node' + myTar,
-					}
-				});
-			}			
-		}			
-	};	
-	
-	//This is for testing
-	addNodesToGraphAsTree = function(){
-		for (var i = 0; i < 20; ++i) {
-			addANode(i);											
-		}	
-		
-		var nodes = cy.nodes();
-		console.log('length of nodes: ' + nodes.length);
-		for (var i = 0; i < 20; ++i) {	
-			if(i < 18){
-				var start = nodes[i].data('id');
-				var index1 = i+1;				
-				var tar1 =  nodes[index1].data('id');
-				var index2 = i+2;				
-				var tar2 =  nodes[index2].data('id');			
-				addTwoEdges(i, start, tar1, tar2);
-			}
-		}
-	};
-	
-	addANode = function(i){
-		cy.add({
-			data: { 
-				id: 'node' + i, 
-				url: "http://js.cytoscape.org/",				
-			}
-		});
-	};
-	
-	addTwoEdges = function(i, start, tar1, tar2){
-		cy.add({
-				data: {
-					id: 'edge' + i,
-					source: start,
-					target: tar1
-				}
-			});
-		cy.add({
-				data: {
-					id: 'edges' + (i),
-					source: start,
-					target: tar2
-				}
-			});			
-	};
-
+	var myLayout;		    
 		
 	
 	/****************************************************************************************************
@@ -298,58 +103,35 @@ $( function(){ //onDocument ready
 					})
 				  .update(); // update the elements in the graph with the new style	
 			}						
-		});
-		
-		//add listener for click events on the webCrawl submit button
-		$('#webCrawlSubmit').on('click', function(){
-			
-			disablePage();
-
-			var url = $('#setStartURl').val();
-			var maxPages = $('#hopLimit').val();
-			//http://stackoverflow.com/questions/10534012/check-if-button-is-active
-			var breadthSearch = $('#performBreadth').hasClass("active");
-			var depthSearch = $('#performDepth').hasClass("active");
-			var depth = 3;
-			var keyword = $('#keyWord').val();
-			
-			//console.log("url: " +url+ ", maxPages: " + maxPages + ", breadth: " + breadthSearch + ", depth: " + depth + ", keyword: " + keyword );
-			if(url != null && url != "" && maxPages != null && maxPages < 500 && (breadthSearch == true || depthSearch == true) ){				
-				postToAPI(url, maxPages, breadthSearch, depth, keyword);
-				//setTimeout(enablePage(), 60000);
-			}else{
-				console.log("Post request failed");
-				$('#webCrawlModal').modal('hide');
-				enablePage();
-			}
-			
-		});
+		});				
 		
 		//https://codepen.io/yeoupooh/pen/RrBdeZ
 		//add a listener for edge selected events
 		cy.on('select', 'edge', selectedEdgeHandler);
 		
-	};
-// Create the XHR object.
-//https://www.html5rocks.com/en/tutorials/cors/
-function createCORSRequest(method, url) {
-  var xhr = new XMLHttpRequest();
-  if ("withCredentials" in xhr) {
-    // XHR for Chrome/Firefox/Opera/Safari.
-    xhr.open(method, url, true);
-  } else if (typeof XDomainRequest != "undefined") {
-    // XDomainRequest for IE.
-    xhr = new XDomainRequest();
-    xhr.open(method, url);
-  } else {
-    // CORS not supported.
-    xhr = null;
-  }
-  return xhr;
-}
+	};			
+	
+	// Create the XHR object.
+	//https://www.html5rocks.com/en/tutorials/cors/
+	function createCORSRequest(method, url) {
+		var xhr = new XMLHttpRequest();
+		if ("withCredentials" in xhr) {
+			// XHR for Chrome/Firefox/Opera/Safari.
+			xhr.open(method, url, true);
+		} else if (typeof XDomainRequest != "undefined") {
+			// XDomainRequest for IE.
+			xhr = new XDomainRequest();
+			xhr.open(method, url);
+		} else {
+			// CORS not supported.
+			xhr = null;
+		}
+		return xhr;
+	}
 	
 	//set up the postSubmit button to send data to a server
 	//via a post request.
+	//TODO check that CORS is really required and not just when running locally
 	postToAPI = function(vettedUrl, vettedMaxPages, vettedBreadth, vettedDepth, vettedKeyword ){		
 		//vars used in post request 
 		var postUrl = "https://web-crawler-ikariotikos.appspot.com/callAPI";
@@ -369,21 +151,40 @@ function createCORSRequest(method, url) {
 			"keyword=" + vettedKeyword;										
 	  
 		
-		console.log("Payload: " + payload);
+		console.log("Payload: " + payload);		
 		//anonymous function is a call back function that parses JSON
 		//response to a JSON result obj, which is parse again to a 
 		//java script object and displayed on page
 		postReq.addEventListener('load', function(){
-		  
+			
 			if(postReq.status >= 200 && postReq.status < 400){
-				//var response = JSON.parse(postReq.responseText);
-		
-				//var dataObj = JSON.parse(response.data);
-				//document.getElementById('resultName').textContent = dataObj.name;
-				//document.getElementById('resultHeight').textContent = dataObj.height;
-				//document.getElementById('resultWeight').textContent = dataObj.weight;
+				cy.remove('*');//remove all node from graph
+				
+				var data = JSON.parse(postReq.responseText);
+				var i=0;
+				for (i=0;i<data.length;i++){
+					//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object
+					var parent = Object.keys(data[0])[0];
+					var child = data[0][Object.keys(data[0])[0]];
+					
+					if(parent != null && i == 0){
+						addANode('ROOT', parent);
+					}
+					if(child != null ){
+						addANode(i, child);
+					}
+					
+					if(parent != null && child != null && i == 0){
+						addEdge(i, 'node' + 'ROOT', 'node'+i);
+					}else{
+						addEdge(i, 'node' + (i-1), 'node'+i);
+					}
+					
+					
+				}
+				cy.makeLayout({ name: 'cola', maxSimulationTime: 5000, infinite: false, fit: true}).run();
 				console.log("Success status making post request");
-				console.log(JSON.parse(postReq.responseText));
+				console.log();
 			}else{
 				console.log("Error making post request: ");
 				console.log(postReq.responseText);
@@ -395,11 +196,129 @@ function createCORSRequest(method, url) {
 		  
 		postReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		postReq.send(payload);			 
-				  
+		disablePage();		  
 	};
 	
+	//parse a url
+	//http://stackoverflow.com/questions/736513/how-do-i-parse-a-url-into-hostname-and-path-in-javascript
+	var getLocation = function (href) {
+		var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
+		return match && {
+			protocol: match[1],
+			host: match[2],
+			hostname: match[3],
+			port: match[4],
+			pathname: match[5],
+			search: match[6],
+			hash: match[7]
+		}
+	};
+		
+	//https://jqueryvalidation.org/jQuery.validator.addMethod/
+	//https://jqueryvalidation.org/validate/
+	//http://stackoverflow.com/questions/26498899/jquery-validate-custom-error-message-location
+	//http://jsfiddle.net/5WMff/
+	//http://stackoverflow.com/questions/18315242/validation-of-bootstrap-select-using-jquery-validate-plugin
+	validateCrawlForm = function(){										
+		
+		 $('#webCrawlForm').validate({	
+			ignore: [],
+			rules: {								
+				crawlSearchGroup: {
+				  required: true,
+				},				
+				searchDepthName: {
+					required: true,
+					searchDepth:true,
+					min: 1,
+                    max: 700
+				},
+				maxPagesName: {
+					required: true,
+					min: 1,
+                    max: 700					
+				},
+				startUrlName: {
+					required: true,
+					maxlength: 100				
+				},
+				keyWordName: {
+					maxlength: 100
+				}
+			},				
+			messages: {	
+				crawlSearchGroup: {
+					required:"Must choose a search type from drop down list."					
+				},
+				searchDepthName: {
+					required:"Must choose a search depth."					
+				},
+				maxPagesName: {
+					required:"Must choose max pages to be returned (max {0})."					
+				},
+				startUrlName: {
+					required:"Must choose a valid url."					
+
+				},
+				keyWordName: {
+					maxlength:"Max length of string is {0} characters."					
+				}
+			},			
+			errorElement : 'div',
+			errorLabelContainer: '.errorTxt',
+			submitHandler: function(form) {
+				console.log("submitting data to API");				
+				$('#webCrawlModal').modal('hide');
+				var url = $('#setStartURl').val();
+				var maxPages = $('#hopLimit').val();
+				//http://stackoverflow.com/questions/2230704/jquery-getting-custom-attribute-from-selected-option
+				var option = $('select#crawlSearchGroup option:selected').attr('value');
+				var depth = $('#searchDepth').val();
+				var keyword = $('#keyWord').val();						
+				
+				var breadthSearch;
+				if( option != null && option == 'breadth' ){
+					breadthSearch = 'True';
+				}else if(option != null){
+					breadthSearch = 'False';
+				}
+				
+				console.log("option" + option + ", url: " + url + ", maxPages: " + maxPages + ", breadth: " + breadthSearch + ", depth: " +  depth + ", keyword: " + keyword );
+				if(url != null && url != "" && maxPages != null && maxPages < 500 && breadthSearch != null ){				
+										
+					postToAPI(url, maxPages, breadthSearch, depth, keyword);										
+					//setTimeout(enablePage(), 60000);
+				}else{
+					console.log('in else bad data enabling page');											
+				}
+				
+				return false;				
+			}
+		});				
+						
+		$.validator.addMethod("searchDepth", function(value, element) {
+									
+			var result = true;
+			var option = $('select#crawlSearchGroup option:selected').attr('value');
+			if(option == 'breadth' && value > 3){result = false;}
+			if(option == 'depth' && value > 700){result = false;}
+			if(option == null){result = false;}	
+			
+			return result;
+		}, $.validator.format("If Search type is Breadth First max depth is 3"));
+		
+		$(".selector").validate({
+			highlight: function(element, errorClass) {
+				$(element).fadeOut(function() {
+					$(element).fadeIn();
+				});
+			}
+		});
+	}
+	
 	//This calls the overlay and shows the cog spinning
-	disablePage = function(){		
+	disablePage = function(){
+		console.log("disabling page");
 		$body.addClass('calc');
 	};
 	
@@ -599,7 +518,7 @@ function createCORSRequest(method, url) {
 					
         });
 		
-		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 20000, infinite: false, fit: true});
+		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 5000, infinite: false, fit: true});
 		myLayout.run();		
 	
 		$('#graphTitle').text('Cola Layout');
@@ -612,9 +531,8 @@ function createCORSRequest(method, url) {
 			panIn(target);	
 		});
 		activateButtons();
-				
-			
-				
+		validateCrawlForm();
+										
 	};  
 	
 	/********************START THE PROGRAM HERE************************************************************/
