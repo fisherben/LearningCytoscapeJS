@@ -156,28 +156,48 @@ $( function(){ //onDocument ready
 		//response to a JSON result obj, which is parse again to a 
 		//java script object and displayed on page
 		postReq.addEventListener('load', function(){
-			
+				
 			if(postReq.status >= 200 && postReq.status < 400){
 				cy.remove('*');//remove all node from graph
 				
+				//create a Set of nodes and then add them to graph
+				//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
+				var nodeMap = {};
 				var data = JSON.parse(postReq.responseText);
 				var i=0;
 				for (i=0;i<data.length;i++){
 					//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object
-					var parent = Object.keys(data[0])[0];
-					var child = data[0][Object.keys(data[0])[0]];
-					
-					if(parent != null && i == 0){
-						addANode('ROOT', parent);
+					var parent = Object.keys(data[i])[0];
+					var child = data[i][Object.keys(data[i])[0]];					
+					var parsedUrl;
+					//console.log("parent: "+ parent + ", child: " + child);
+					try{
+						if(parent != null && i == 0){
+							parseUrl = getLocation(parent);		
+							addANode(parent, parent, parseUrl.name);
+							nodeMap[parent] = true;
+							if(child != null && !nodeMap[child]){
+								parseUrl = getLocation(child);
+								addANode(child, child, parseUrl.name);								
+								nodeMap[child] = true
+							}
+							
+						}else if(child != null && !nodeMap[child]){
+							parseUrl = getLocation(child);
+							addANode(child, child, parseUrl.name);
+							nodeMap[child] = true;
+						}
+					}catch(err){
+						console.log("Error caught creating node: " + err);	
+						console.log("Parent: " + parent + ", child: " + child);						
 					}
-					if(child != null ){
-						addANode(i, child);
-					}
 					
-					if(parent != null && child != null && i == 0){
-						addEdge(i, 'node' + 'ROOT', 'node'+i);
-					}else{
-						addEdge(i, 'node' + (i-1), 'node'+i);
+					try{
+						if(nodeMap[parent] && nodeMap[child] ){
+							addEdge(i, parent, child);
+						}
+					}catch(err){
+						console.log("Error caught creating edge: " + err);
 					}
 					
 					
@@ -188,11 +208,19 @@ $( function(){ //onDocument ready
 			}else{
 				console.log("Error making post request: ");
 				console.log(postReq.responseText);
-				console.log(JSON.parse(postReq.responseText));
+				$('#alert-dialog').show(2000).delay(4000).hide(2000);
+
 			}
 			enablePage();
 			$('#webCrawlModal').modal('hide');			
-		});
+		}, false);
+
+		postReq.addEventListener('error', function(){
+			console.log('Server returned an error');
+			console.log('Error: ' + postReq.status + ", " + postReq.message);			
+			$('#alert-dialog').show(2000).delay(4000).hide(2000);;
+			enablePage();
+		}, false);
 		  
 		postReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		postReq.send(payload);			 
@@ -210,7 +238,8 @@ $( function(){ //onDocument ready
 			port: match[4],
 			pathname: match[5],
 			search: match[6],
-			hash: match[7]
+			hash: match[7],
+			name: match[3]+match[5]
 		}
 	};
 		
@@ -221,8 +250,7 @@ $( function(){ //onDocument ready
 	//http://stackoverflow.com/questions/18315242/validation-of-bootstrap-select-using-jquery-validate-plugin
 	validateCrawlForm = function(){										
 		
-		 $('#webCrawlForm').validate({	
-			ignore: [],
+		 $('#webCrawlForm').validate({				
 			rules: {								
 				crawlSearchGroup: {
 				  required: true,
@@ -231,12 +259,12 @@ $( function(){ //onDocument ready
 					required: true,
 					searchDepth:true,
 					min: 1,
-                    max: 700
+                    			max: 700
 				},
 				maxPagesName: {
 					required: true,
 					min: 1,
-                    max: 700					
+			                max: 700					
 				},
 				startUrlName: {
 					required: true,
@@ -254,7 +282,7 @@ $( function(){ //onDocument ready
 					required:"Must choose a search depth."					
 				},
 				maxPagesName: {
-					required:"Must choose max pages to be returned (max {0})."					
+					required:"Must choose max pages to be returned (max {2})."					
 				},
 				startUrlName: {
 					required:"Must choose a valid url."					
@@ -284,7 +312,7 @@ $( function(){ //onDocument ready
 				}
 				
 				console.log("option" + option + ", url: " + url + ", maxPages: " + maxPages + ", breadth: " + breadthSearch + ", depth: " +  depth + ", keyword: " + keyword );
-				if(url != null && url != "" && maxPages != null && maxPages < 500 && breadthSearch != null ){				
+				if(url != null && url != "" && maxPages != null && maxPages <= 700 && breadthSearch != null ){				
 										
 					postToAPI(url, maxPages, breadthSearch, depth, keyword);										
 					//setTimeout(enablePage(), 60000);
@@ -300,9 +328,23 @@ $( function(){ //onDocument ready
 									
 			var result = true;
 			var option = $('select#crawlSearchGroup option:selected').attr('value');
-			if(option == 'breadth' && value > 3){result = false;}
-			if(option == 'depth' && value > 700){result = false;}
-			if(option == null){result = false;}	
+			if(option == 'breadth'){
+				$('#max_pages_group').show();
+				if(value>3){
+					result = false;
+				}
+	
+			}
+			if(option == 'depth'){
+				$('#max_pages_group').hide();
+				if(value>700){
+					result = false;
+				}
+			}
+			if(option == null){
+				$('#max_pages_group').show();
+				result = false;
+			}	
 			
 			return result;
 		}, $.validator.format("If Search type is Breadth First max depth is 3"));
@@ -314,7 +356,7 @@ $( function(){ //onDocument ready
 				});
 			}
 		});
-	}
+	};
 	
 	//This calls the overlay and shows the cog spinning
 	disablePage = function(){
@@ -495,7 +537,7 @@ $( function(){ //onDocument ready
 		addNodesToGraphAsTree();
 		
 		cy.on('layoutstart', function (e) {			
-		    disablePage();
+		    	disablePage();
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			if(doAnimation){
 				//hide nodes
@@ -507,7 +549,7 @@ $( function(){ //onDocument ready
 		cy.on('layoutstop', function (e) {
 			cy.center();
 			cy.fit();
-		    enablePage();
+		    	enablePage();
 			
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			

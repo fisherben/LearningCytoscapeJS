@@ -63,29 +63,41 @@ app.post('/callAPI', function (req, res, next) {
 		'Accept': 'application/json'
 	};
 	
+	var options;
+	if(breadth == 'True'){	
 	// Configure the request
 	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
-	var options = {
-		url: 'https://web-crawler-api.appspot.com/crawl',
-		method: 'POST',
-		headers: headers,
-		form: {'url': url, 'max_pages': max_pages}
-	};
+		options = {
+			url: 'https://web-crawler-api.appspot.com/crawl',
+			method: 'POST',
+			headers: headers,
+			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keword:': keyword}
+		};
+	}else{
+		// Configure the request
+		//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
+		var options = {
+			url: 'https://web-crawler-api.appspot.com/crawl',
+			method: 'POST',
+			headers: headers,
+			form: {'url': url, 'depth_pages': depth, 'keyword': keyword}
+		};
+
+	}
     
     //get graph data from API
     request(options, function(err, response, body){
 	
-	console.warn("Returning from API: " + body);      	
-	console.log("body: " + body);
+	console.warn("Returning from API: ");      	
+	//console.log("body: " + body);
       if (err || response.statusCode < 200 || response.statusCode >= 400) {	
-	message = "Problem with request to API: " + " url: " + url + ", max_pages: " + max_pages + ", breadth: " + breadth + ", depth: " + depth + ", keyword: " + keyword;
-	console.log(message);
-        return res.status(500).send(err.response || 'Something broke trying to call the Python API');
-      }
-                  
-      res.send(body);
+	
+      	res.send({error: 'Something broke trying to call the WebCrawler API...'});
+      }else{                  
+      		res.send(body);
+	}
+	next(err);
     });
-
   });
 // [END hello_world]
 

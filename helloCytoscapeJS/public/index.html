@@ -36,7 +36,7 @@
 		<!-- http://stackoverflow.com/questions/28931791/jquery-how-to-grey-out-the-background-while-showing-the-loading-icon-over-it -->
 		<div class='overlay' id="loading">
 			<span class="fa fa-cog fa-spin" id="cog"></span>
-		</div>
+		</div>		
 		
 		<h1  class="text-center">CS 419 Ikariotikos :: WEB2 Graphical Web Crawler</h1>
 	
@@ -120,7 +120,11 @@
 		</nav>
 		</div>		
 		
-
+ 		<!-- http://www.w3schools.com/bootstrap/bootstrap_alerts.asp  -->
+		<div class="alert alert-danger alert-dismissable flade in" id="alert-dialog" role="alert" hidden="true">
+			<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+			<strong id="alert-text">Something has gone wrong, in land far far away... Please try again maybe it's better now.</strong>
+		</div>
 
 		<!-- Cytoscape graph container -->
 		<div class="wrapper-container">
@@ -186,7 +190,7 @@
 								<input class="form-control" id="searchDepth" type="number" min="1" max="700" name="searchDepthName" placeholder="Max Search Depth:700 depth, 3 breadth">
 							</div>							
 						</div>
-						<div class="form-group">
+						<div class="form-group" id="max_pages_group">
 							<div class="input-group">								
 								<span class="input-group-addon">Max Pages</span>
 								<input class="form-control" id="hopLimit" type="number" min="1" max="700" name="maxPagesName" placeholder="Max Pages that can be returned is 700">

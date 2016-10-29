@@ -56,7 +56,7 @@ initCytoscape = function(){
 			})									 
 			.selector( 'node').css({					
 				'shape': 'hexagon',						
-				'label': 'data(id)',						
+				'label': 'data(name)',						
 				'font-size': 8,
 				'background-color': nodeOptions.normal.bgColorNode,						
 				'text-opacity': 0.5,
@@ -153,7 +153,7 @@ addNodesToGraphAsLine = function(){
 
 //This is for testing
 addNodesToGraphAsTree = function(){
-	for (var i = 0; i < 10; ++i) {
+	for (var i = 0; i < 100; ++i) {
 		addANode(i);											
 	}	
 	
@@ -179,16 +179,18 @@ addANode = function(i){
 	cy.add({
 		data: { 
 			id: 'node' + i, 
-			url: "http://js.cytoscape.org/",				
+			url: "http://js.cytoscape.org/",	
+			name: 'node' + i			
 		}
 	});
 };
 
-addANode = function(i, myUrl){
+addANode = function(i, myUrl, name){
 	cy.add({
 		data: { 
-			id: 'node' + i, 
+			id: i, 
 			url: myUrl,				
+			name: name
 		}
 	});
 };
