@@ -44,6 +44,17 @@ $( function(){ //onDocument ready
 		$(".overlay").height(win.innerHeight());
 		$(".overlay").width(win.innerWidth());
 	};
+
+	/****************************************************************************************************
+	* Function changes the layout
+	*
+	*/
+	changeLayout = function(layoutName, title){
+		myLayout = cy.makeLayout({ name: layoutName });
+		myLayout.run();	
+		$('#graphTitle').text(title + " Layout");
+
+	}
 	
 	/****************************************************************************************************
 	 * Set event listeners for the buttons in the applications.
@@ -69,10 +80,7 @@ $( function(){ //onDocument ready
 			var title = $(this).text();
 			
 			if(layout != null && layout != ""){	
-
-				myLayout = cy.makeLayout({ name: layout.toString() });
-				myLayout.run();	
-				$('#graphTitle').text(title + " Layout");
+				changeLayout(layout.toString()), title;
 			}else{
 				console.log("Problem with layout, check layout buttons procedure");
 			}
@@ -134,7 +142,7 @@ $( function(){ //onDocument ready
 	//TODO check that CORS is really required and not just when running locally
 	postToAPI = function(vettedUrl, vettedMaxPages, vettedBreadth, vettedDepth, vettedKeyword ){		
 		//vars used in post request 
-		var postUrl = "https://web-crawler-ikariotikos.appspot.com/callAPI";
+		var postUrl = "https://ikariotikos-web-crawl.appspot.com/callAPI";
 		
 		var postReq = createCORSRequest('POST', postUrl);
 
@@ -155,10 +163,10 @@ $( function(){ //onDocument ready
 		//anonymous function is a call back function that parses JSON
 		//response to a JSON result obj, which is parse again to a 
 		//java script object and displayed on page
-		postReq.addEventListener('load', function(){
+		postReq.addEventListener('load', function(){			
 				
 			if(postReq.status >= 200 && postReq.status < 400){
-				cy.remove('*');//remove all node from graph
+				cy.remove('*');//remove all nodes from graph
 				
 				//create a Set of nodes and then add them to graph
 				//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
@@ -202,7 +210,7 @@ $( function(){ //onDocument ready
 					
 					
 				}
-				cy.makeLayout({ name: 'cola', maxSimulationTime: 5000, infinite: false, fit: true}).run();
+				changeLayout('dagre', 'Dagre');
 				console.log("Success status making post request");
 				console.log();
 			}else{
@@ -381,7 +389,7 @@ $( function(){ //onDocument ready
 		//Show the node, then show the edges
 		for( var i = 0; i < nodes.length; ++i ){ 
 			var currentNode = nodes[i];
-			console.log("Iterating through nodes index: " + i);
+			//console.log("Iterating through nodes index: " + i);
 			(function(currentNode, x){					
 				var nextNode = currentNode.connectedEdges(
 					function(){
@@ -392,7 +400,7 @@ $( function(){ //onDocument ready
 				if(nextNode != null && x != 0){
 					currentNode.delay( delay, function(){
 						currentNode.style("visibility", "visible");
-						console.log("Delay function, currentNode: " + currentNode.id() + ", nextNode: " + nextNode.id());
+						//console.log("Delay function, currentNode: " + currentNode.id() + ", nextNode: " + nextNode.id());
 					} ).animate({					
 								renderedPosition: currentNode.position(),//from this position								
 							}, {
@@ -417,7 +425,7 @@ $( function(){ //onDocument ready
 								}
 							}										
 						);
-					console.log("nextNode is null or on first node");
+					//console.log("nextNode is null or on first node");
 				}
 				delay += duration;
 			})(currentNode, i);				
@@ -560,10 +568,8 @@ $( function(){ //onDocument ready
 					
         });
 		
-		myLayout = cy.makeLayout({ name: 'cola', maxSimulationTime: 5000, infinite: false, fit: true});
-		myLayout.run();		
+		changeLayout('cola', 'Cola');
 	
-		$('#graphTitle').text('Cola Layout');
 		//cy.center();
 		//cy.fit(); //optional arg is padding, fitt all elements
 		cy.on('tap', 'node', function(event) {

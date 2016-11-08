@@ -92,9 +92,9 @@ app.post('/callAPI', function (req, res, next) {
 	//console.log("body: " + body);
       if (err || response.statusCode < 200 || response.statusCode >= 400) {	
 	
-      	res.send({error: 'Something broke trying to call the WebCrawler API...'});
+      	return res.send({error: 'Something broke trying to call the WebCrawler API...'});
       }else{                  
-      		res.send(body);
+      	return res.send(body);
 	}
 	next(err);
     });

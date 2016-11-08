@@ -154,7 +154,7 @@ addNodesToGraphAsLine = function(){
 //This is for testing
 addNodesToGraphAsTree = function(){
 	for (var i = 0; i < 100; ++i) {
-		addANode(i);											
+		addATestNode(i);											
 	}	
 	
 	var nodes = cy.nodes();	
@@ -175,7 +175,7 @@ addNodesToGraphAsTree = function(){
 	}
 };
 
-addANode = function(i){
+addATestNode = function(i){
 	cy.add({
 		data: { 
 			id: 'node' + i, 
