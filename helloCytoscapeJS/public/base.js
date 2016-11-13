@@ -80,7 +80,7 @@ $( function(){ //onDocument ready
 			var title = $(this).text();
 			
 			if(layout != null && layout != ""){	
-				changeLayout(layout.toString()), title;
+				changeLayout(layout.toString(), title);
 			}else{
 				console.log("Problem with layout, check layout buttons procedure");
 			}
@@ -172,6 +172,7 @@ $( function(){ //onDocument ready
 				//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
 				var nodeMap = {};
 				var data = JSON.parse(postReq.responseText);
+
 				var i=0;
 				for (i=0;i<data.length;i++){
 					//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object

@@ -23,7 +23,20 @@ var bodyParser = require('body-parser');
 //https://github.com/xpepermint/socket.io-express-session/blob/master/example/index.js#L4
 var Session = require('express-session');
 var SessionStore = require('session-file-store')(Session);
-var session = Session({store: new SessionStore({path: __dirname+'/tmp/sessions'}), secret: 'pass', resave: true, saveUninitialized: true});
+
+if(!process.env.PWD){
+	throw err;
+}
+
+var session = Session({store: new SessionStore({
+	path: __dirname+'/tmp/sessions'}), 
+	secret: process.env.PWD + process.env.USER, 
+	resave: true, 
+	saveUninitialized: true,
+	signed: true
+	//duration = 30 * 60 * 1000,
+	//activeDuration = 10 * 60 * 1000
+});
 
 //layout defaults to main, located in the views layout folder
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
@@ -55,6 +68,10 @@ app.post('/callAPI', function (req, res, next) {
 	var breadth = req.body.breadth;
 	var depth = req.body.depth;
 	var keyword = req.body.keyword;    
+
+	if(req.session && !req.session.urls[url]){
+		req.session.urls[url] = true;
+	}
 
 	//Set the headers
 	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
@@ -93,7 +110,8 @@ app.post('/callAPI', function (req, res, next) {
       if (err || response.statusCode < 200 || response.statusCode >= 400) {	
 	
       	return res.send({error: 'Something broke trying to call the WebCrawler API...'});
-      }else{                  
+      }else{	                  
+	//body.push(req.session.urls);
       	return res.send(body);
 	}
 	next(err);
