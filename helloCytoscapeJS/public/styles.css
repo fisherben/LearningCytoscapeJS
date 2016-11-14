@@ -4,6 +4,10 @@
 		background-color: #f5f5f5;
 		font-family: helvetica;
 		font-size: 14px;
+	}	
+	#urlDropdownList{
+		margin-top: 0;
+		z-index: 10;
 	}
 	blockquote {
 		margin-bottom: 10px;

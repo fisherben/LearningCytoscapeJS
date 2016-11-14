@@ -113,10 +113,37 @@ $( function(){ //onDocument ready
 			}						
 		});				
 		
+		
+		//http://stackoverflow.com/questions/16214326/bootstrap-dropdown-with-hover
+		//Open the url drop down button on hover	
+		$('#urlDropdownButton').hover(
+		function(){
+			$(this).dropdown('toggle');		
+		}, function(){
+			//do nothing on hover out	
+		});
+
+		$('#urlDropdownList').hover(function(){
+			//do nothing on hover in
+		}, function(){
+			$('#urlDropdownButton').dropdown('toggle');
+		});
+
+		//set the start url to the text in the drop down that was selected
+		$('#urlDropdownList li a').on('click', function(){
+			$('#setStartURl').val($(this).text());
+
+		});
+
+		//reset form fields to 0 when search type changes
+		$('#crawlSearchGroup').on('click', function(){
+			$('#hopLimit').val("");
+			$('#searchDepth').val("");
+		});
+
 		//https://codepen.io/yeoupooh/pen/RrBdeZ
 		//add a listener for edge selected events
-		cy.on('select', 'edge', selectedEdgeHandler);
-		
+		cy.on('select', 'edge', selectedEdgeHandler);				
 	};			
 	
 	// Create the XHR object.
