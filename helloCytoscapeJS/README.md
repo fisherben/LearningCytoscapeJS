@@ -1,6 +1,4 @@
-# 1 - Hello world
+#Ikariotikos - Web Crawler Frontend
 
-This project contains code for running [Cytoscape.js]
-on Node.js.  The Cytoscape graph is initialized from the main.handlebars
-file in the layouts folder.
+This project contains code for running the front end of our CS419 cap stone project.  The website is built using Bootstrap  and Cytoscape.js and is running on a Google Cloud Node.js server.
 

@@ -24,10 +24,6 @@ var bodyParser = require('body-parser');
 var Session = require('express-session');
 var SessionStore = require('session-file-store')(Session);
 
-if(!process.env.PWD){
-	throw err;
-}
-
 var session = Session({store: new SessionStore({
 	path: __dirname+'/tmp/sessions'}), 
 	secret: process.env.PWD + process.env.USER, 
@@ -59,8 +55,7 @@ app.set('view engine', 'handlebars');
 //https://github.com/expressjs/cors
 app.options('*', cors()); // include before other routes
 
-// [START hello_world]
-// Say hello!
+// Request proxy server make a web crawl request
 app.post('/callAPI', function (req, res, next) {       
 
     	var url = req.body.url;			  
@@ -117,6 +112,15 @@ app.post('/callAPI', function (req, res, next) {
 	next(err);
     });
   });
+
+app.get('/getCookie', function(req, res, next){
+	if(req.session){
+		return	res.send(req.session.urls);
+	}else{
+		return res.send('No cookie for you');
+	}	
+});
+
 // [END hello_world]
 
 //listener all for unrecognized urls

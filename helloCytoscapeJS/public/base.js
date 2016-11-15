@@ -611,6 +611,29 @@ $( function(){ //onDocument ready
 										
 	};  
 	
-	/********************START THE PROGRAM HERE************************************************************/
-	initWebPage();
+	/*******************************************************************************************************
+	* Make a get request to server to retrieve cookies then initialize the web page
+	*/
+	getCookies = function(){	
+		var reqCookies = new XMLHttpRequest();
+		//not a asynchronous call
+		reqCookies.open('GET', 'https://ikariotikos-web-crawl.appspot.com/getCookie', true);
+		reqCookies.addEventListener('load', function(){
+			if(reqCookies.status >= 200 && reqCookies < 400){
+				var response = JSON.parse(reqCookies.responseText);
+				console.log("Getting a cookie: " + response);
+			}else{
+				console.log('Error getting cookies');
+			}
+			//Add listeners and event handlers
+			initWebPage();
+		});
+
+		reqCookies.send();
+	};
+	
+	/********************START THE PROGRAM HERE***********************************************************
+	* 
+	*/
+	getCookies();	
 });
