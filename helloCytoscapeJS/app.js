@@ -63,9 +63,17 @@ app.post('/callAPI', function (req, res, next) {
 	var breadth = req.body.breadth;
 	var depth = req.body.depth;
 	var keyword = req.body.keyword;    
-
-	if(req.session && !req.session.urls[url]){
-		req.session.urls[url] = true;
+	
+	//create urls array and add url to array if needed
+	if(req.session){ 
+		if(!req.session.urls){
+			req.session.urls = {};
+			req.session.urls[url] = true;
+		}else{
+			if(!req.session.urls[url]){
+				req.session.urls[url] = true;
+			}	
+		}
 	}
 
 	//Set the headers
@@ -77,13 +85,13 @@ app.post('/callAPI', function (req, res, next) {
 	
 	var options;
 	if(breadth == 'True'){	
-	// Configure the request
-	//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
+		// Configure the request
+		//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
 		options = {
 			url: 'https://web-crawler-api.appspot.com/crawl',
 			method: 'POST',
 			headers: headers,
-			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keword:': keyword}
+			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keyword:': keyword}
 		};
 	}else{
 		// Configure the request
@@ -94,7 +102,6 @@ app.post('/callAPI', function (req, res, next) {
 			headers: headers,
 			form: {'url': url, 'depth_pages': depth, 'keyword': keyword}
 		};
-
 	}
     
     //get graph data from API
@@ -111,13 +118,14 @@ app.post('/callAPI', function (req, res, next) {
 	}
 	next(err);
     });
-  });
+});
 
 app.get('/getCookie', function(req, res, next){
+	res.setHeader("content-type", "application/json");
 	if(req.session){
-		return	res.send(req.session.urls);
+		return	res.send(JSON.stringify(req.session.urls));
 	}else{
-		return res.send('No cookie for you');
+		return res.send(JSON.stringify('No cookie for you'));
 	}	
 });
 

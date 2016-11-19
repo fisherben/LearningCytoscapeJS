@@ -7,7 +7,8 @@ $( function(){ //onDocument ready
 	var win;	
 	var $body = $('body');//used to show / hide spinner
 	var loading = document.getElementById('loading');
-	var myLayout;		    
+	var myLayout;	
+	var urls = {}; //list of urls returned from cookie	    
 		
 	
 	/****************************************************************************************************
@@ -55,6 +56,25 @@ $( function(){ //onDocument ready
 		$('#graphTitle').text(title + " Layout");
 
 	}
+
+	/****************************************************************************************************
+	* Function to set the list of urls in the urlDropdownList
+	*
+	*/
+	setUrls = function(){	
+		$('#urlDropdownList').empty();
+
+		for(var url in urls){
+			$('#urlDropdownList').append('<li><a href="#">' + url + '</a></li>');							
+		}
+
+		//reset the start url to the text in the drop down that was selected
+		$('#urlDropdownList li a').on('click', function(){
+			$('#setStartURl').val($(this).text());
+
+		});
+	}
+
 	
 	/****************************************************************************************************
 	 * Set event listeners for the buttons in the applications.
@@ -185,7 +205,7 @@ $( function(){ //onDocument ready
 			"depth=" + vettedDepth + "&" +
 			"keyword=" + vettedKeyword;										
 	  
-		
+	        	
 		console.log("Payload: " + payload);		
 		//anonymous function is a call back function that parses JSON
 		//response to a JSON result obj, which is parse again to a 
@@ -260,6 +280,12 @@ $( function(){ //onDocument ready
 		  
 		postReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		postReq.send(payload);			 
+		
+		//add url to list of urls
+		if(!urls[vettedUrl]){
+			urls[vettedUrl] = true;
+			setUrls(); //now set the urls in the drop down button
+		}
 		disablePage();		  
 	};
 	
@@ -304,10 +330,10 @@ $( function(){ //onDocument ready
 				},
 				startUrlName: {
 					required: true,
-					maxlength: 100				
+					maxlength: 1000				
 				},
 				keyWordName: {
-					maxlength: 100
+					maxlength: 1000
 				}
 			},				
 			messages: {	
@@ -596,7 +622,7 @@ $( function(){ //onDocument ready
 					
         });
 		
-		changeLayout('cola', 'Cola');
+		changeLayout('dagre', 'Dagre');
 	
 		//cy.center();
 		//cy.fit(); //optional arg is padding, fitt all elements
@@ -619,9 +645,20 @@ $( function(){ //onDocument ready
 		//not a asynchronous call
 		reqCookies.open('GET', 'https://ikariotikos-web-crawl.appspot.com/getCookie', true);
 		reqCookies.addEventListener('load', function(){
-			if(reqCookies.status >= 200 && reqCookies < 400){
-				var response = JSON.parse(reqCookies.responseText);
+			if(reqCookies.status >= 200 && reqCookies.status < 400){
+				var response = reqCookies.responseText;
 				console.log("Getting a cookie: " + response);
+		
+				if(response && response.length > 0){
+					console.log("creating the urls array");	
+					urls  = JSON.parse(response);
+					/*for(var key in data){
+						console.log("Adding item to urls array");
+						urls[key] = true;
+					}*/	
+					setUrls();
+				}
+				
 			}else{
 				console.log('Error getting cookies');
 			}
