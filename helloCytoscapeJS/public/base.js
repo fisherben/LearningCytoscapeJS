@@ -1,6 +1,5 @@
 /*******************************************************************************************************
- * File is the main entry point into the application.
- * File attempts to deal only with updating html and visualization in browser window
+ * File attempts to deal only with updating html dom and visualization in browser window
  */
 
 $( function(){ //onDocument ready  	
@@ -8,7 +7,7 @@ $( function(){ //onDocument ready
 	var $body = $('body');//used to show / hide spinner
 	var loading = document.getElementById('loading');
 	var myLayout;	
-	var urls = {}; //list of urls returned from cookie	    
+	var urls = {}; // used to create map of urls returned from cookie	    
 		
 	
 	/****************************************************************************************************
@@ -36,8 +35,7 @@ $( function(){ //onDocument ready
 	 * Resize the cytoscape graph on window size update
 	 * 
 	 */
-	resize = function() {
-		console.log(win.height(), win.innerHeight());
+	resize = function() {	
 		$("#cy-container").height(win.innerHeight() / 2 ); //set the height of the container to half the window size		
 		cy.resize();
 		cy.center();		
@@ -51,14 +49,14 @@ $( function(){ //onDocument ready
 	*
 	*/
 	changeLayout = function(layoutName, title){
-		myLayout = cy.makeLayout({ name: layoutName });
+		myLayout = cy.elements().makeLayout({ name: layoutName });
 		myLayout.run();	
 		$('#graphTitle').text(title + " Layout");
 
 	}
 
 	/****************************************************************************************************
-	* Function to set the list of urls in the urlDropdownList
+	* Function to set the list of prev urls in the urlDropdownList
 	*
 	*/
 	setUrls = function(){	
@@ -93,8 +91,7 @@ $( function(){ //onDocument ready
 		});
 		
 		//add listener for click events on layout buttons
-		$('#layoutList li a').on('click', function(){
-			
+		$('#layoutList li a').on('click', function(){		
 			
 			var layout = $(this).attr('data-layout');
 			var title = $(this).text();
@@ -165,9 +162,12 @@ $( function(){ //onDocument ready
 		//add a listener for edge selected events
 		cy.on('select', 'edge', selectedEdgeHandler);				
 	};			
-	
-	// Create the XHR object.
-	//https://www.html5rocks.com/en/tutorials/cors/
+
+	/****************************************************************************************************
+	 * Create the XHR object.
+	 * https://www.html5rocks.com/en/tutorials/cors/
+	 * 
+	 */
 	function createCORSRequest(method, url) {
 		var xhr = new XMLHttpRequest();
 		if ("withCredentials" in xhr) {
@@ -184,9 +184,12 @@ $( function(){ //onDocument ready
 		return xhr;
 	}
 	
-	//set up the postSubmit button to send data to a server
-	//via a post request.
-	//TODO check that CORS is really required and not just when running locally
+	/****************************************************************************************************
+	 * Set up the postSubmit button to send data to a server
+	 * via a post request.
+	 * TODO check that CORS is really required and not just when running locally
+	 * 
+	 */
 	postToAPI = function(vettedUrl, vettedMaxPages, vettedBreadth, vettedDepth, vettedKeyword ){		
 		//vars used in post request 
 		var postUrl = "https://ikariotikos-web-crawl.appspot.com/callAPI";
@@ -208,59 +211,15 @@ $( function(){ //onDocument ready
 	        	
 		console.log("Payload: " + payload);		
 		//anonymous function is a call back function that parses JSON
-		//response to a JSON result obj, which is parse again to a 
-		//java script object and displayed on page
+		//response to a java script object
+		//http://stackoverflow.com/questions/5657292/why-is-false-used-after-this-simple-addeventlistener-function
 		postReq.addEventListener('load', function(){			
 				
 			if(postReq.status >= 200 && postReq.status < 400){
-				cy.remove('*');//remove all nodes from graph
-				
-				//create a Set of nodes and then add them to graph
-				//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
-				var nodeMap = {};
+				cy.remove('node');//remove all nodes from graph
+					
 				var data = JSON.parse(postReq.responseText);
-
-				var i=0;
-				for (i=0;i<data.length;i++){
-					//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object
-					var parent = Object.keys(data[i])[0];
-					var child = data[i][Object.keys(data[i])[0]];					
-					var parsedUrl;
-					//console.log("parent: "+ parent + ", child: " + child);
-					try{
-						if(parent != null && i == 0){
-							parseUrl = getLocation(parent);		
-							addANode(parent, parent, parseUrl.name);
-							nodeMap[parent] = true;
-							if(child != null && !nodeMap[child]){
-								parseUrl = getLocation(child);
-								addANode(child, child, parseUrl.name);								
-								nodeMap[child] = true
-							}
-							
-						}else if(child != null && !nodeMap[child]){
-							parseUrl = getLocation(child);
-							addANode(child, child, parseUrl.name);
-							nodeMap[child] = true;
-						}
-					}catch(err){
-						console.log("Error caught creating node: " + err);	
-						console.log("Parent: " + parent + ", child: " + child);						
-					}
-					
-					try{
-						if(nodeMap[parent] && nodeMap[child] ){
-							addEdge(i, parent, child);
-						}
-					}catch(err){
-						console.log("Error caught creating edge: " + err);
-					}
-					
-					
-				}
-				changeLayout('dagre', 'Dagre');
-				console.log("Success status making post request");
-				console.log();
+				rebuildGraph(data);
 			}else{
 				console.log("Error making post request: ");
 				console.log(postReq.responseText);
@@ -288,9 +247,13 @@ $( function(){ //onDocument ready
 		}
 		disablePage();		  
 	};
+
 	
-	//parse a url
-	//http://stackoverflow.com/questions/736513/how-do-i-parse-a-url-into-hostname-and-path-in-javascript
+	/****************************************************************************************************	 
+	 * parse a url
+	 * http://stackoverflow.com/questions/736513/how-do-i-parse-a-url-into-hostname-and-path-in-javascript
+	 * 
+	 */
 	var getLocation = function (href) {
 		var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
 		return match && {
@@ -304,12 +267,16 @@ $( function(){ //onDocument ready
 			name: match[3]+match[5]
 		}
 	};
-		
-	//https://jqueryvalidation.org/jQuery.validator.addMethod/
-	//https://jqueryvalidation.org/validate/
-	//http://stackoverflow.com/questions/26498899/jquery-validate-custom-error-message-location
-	//http://jsfiddle.net/5WMff/
-	//http://stackoverflow.com/questions/18315242/validation-of-bootstrap-select-using-jquery-validate-plugin
+
+	/****************************************************************************************************	 
+	 * User jquery-validate to validate the perform web crawl form
+	 * https://jqueryvalidation.org/jQuery.validator.addMethod/
+	 * https://jqueryvalidation.org/validate/
+	 * http://stackoverflow.com/questions/26498899/jquery-validate-custom-error-message-location
+	 * http://jsfiddle.net/5WMff/
+	 * http://stackoverflow.com/questions/18315242/validation-of-bootstrap-select-using-jquery-validate-plugin
+	 * 
+	 */	
 	validateCrawlForm = function(){										
 		
 		 $('#webCrawlForm').validate({				
@@ -420,19 +387,29 @@ $( function(){ //onDocument ready
 		});
 	};
 	
-	//This calls the overlay and shows the cog spinning
+	/****************************************************************************************************	 
+	 * This calls the overlay and shows the cog spinning
+	 * 
+	 */
 	disablePage = function(){
 		console.log("disabling page");
 		$body.addClass('calc');
 	};
-	
-	//Disables the overlay and enables the page
+
+	/****************************************************************************************************	 
+	 * Disables the overlay and enables the page
+	 * 
+	 */
 	enablePage = function(){		
 		$body.removeClass('calc');
 	};
 
-	//https://gist.github.com/maxkfranz/aedff159b0df05ccfaa5
-	//method will animate the graph building visualization
+
+	/****************************************************************************************************	 
+	 * https://gist.github.com/maxkfranz/aedff159b0df05ccfaa5
+	 * method will animate the graph building visualization
+	 * 
+	 */
 	animateGraphBuilding = function(nodes){
 						
 		var delay = 0;		
@@ -487,8 +464,12 @@ $( function(){ //onDocument ready
 				
 	};
 	  
-	//https://gist.github.com/maxkfranz/aedff159b0df05ccfaa5
-	//method will animate the graph building visualization
+
+	/****************************************************************************************************	 
+	 * https://gist.github.com/maxkfranz/aedff159b0df05ccfaa5
+	 * method will animate the graph building visualization
+	 * 
+	 */
 	animateGraphBuilding1 = function(nodes){
 						
 		var delay = 0;		
@@ -577,14 +558,72 @@ $( function(){ //onDocument ready
 				delay += duration;
 			});		*/								
 	};
-	  
+	 
 	/****************************************************************************************************
+	 * Setup the cog spinner.
+	 * 
+	 */
+	addSpinner = function(){
+		loading.classList.add('loaded');	
+		enablePage();
+	}
+
+	/****************************************************************************************************
+	 * Rebuild graph with new data.
+	 * 
+	 */
+	rebuildGraph = function(data) {						
+		
+		//create a Set of nodes and then add them to graph
+		//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
+		var nodeMap = {};
+
+		var i=0;
+		for (i=0;i<data.length;i++){
+			//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object
+			var parent = Object.keys(data[i])[0];
+			var child = data[i][Object.keys(data[i])[0]];					
+			var parsedUrl;
+			//console.log("parent: "+ parent + ", child: " + child);
+			try{
+				if(parent != null && i == 0){
+					parseUrl = getLocation(parent);		
+					addANode(parent, parent, parseUrl.name);
+					nodeMap[parent] = true;
+					if(child != null && !nodeMap[child]){
+						parseUrl = getLocation(child);
+						addANode(child, child, parseUrl.name);								
+						nodeMap[child] = true
+					}
+							
+				}else if(child != null && !nodeMap[child]){
+					parseUrl = getLocation(child);
+					addANode(child, child, parseUrl.name);
+					nodeMap[child] = true;
+				}
+			}catch(err){
+				console.log("Error caught creating node: " + err);	
+				console.log("Parent: " + parent + ", child: " + child);						
+			}
+					
+			try{
+				if(nodeMap[parent] && nodeMap[child] ){
+					addEdge(i, parent, child);
+				}
+			}catch(err){
+				console.log("Error caught creating edge: " + err);
+			}
+		}
+		
+		changeLayout('dagre', 'Dagre');
+										
+	}; 
+ 
 	/****************************************************************************************************
 	 * Initializes the application.
 	 * 
 	 */
-	initWebPage = function() {	
-		loading.classList.add('loaded');
+	initWebPage = function() {		
 		
 		console.log("initializing web application");
 		win = $(window);
@@ -640,7 +679,8 @@ $( function(){ //onDocument ready
 	/*******************************************************************************************************
 	* Make a get request to server to retrieve cookies then initialize the web page
 	*/
-	getCookies = function(){	
+	getCookies = function(){			
+
 		var reqCookies = new XMLHttpRequest();
 		//not a asynchronous call
 		reqCookies.open('GET', 'https://ikariotikos-web-crawl.appspot.com/getCookie', true);
@@ -672,5 +712,6 @@ $( function(){ //onDocument ready
 	/********************START THE PROGRAM HERE***********************************************************
 	* 
 	*/
+	addSpinner();//remove the spinner from the page
 	getCookies();	
 });
