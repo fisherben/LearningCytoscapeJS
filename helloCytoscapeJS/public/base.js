@@ -28,7 +28,7 @@ $( function(){ //onDocument ready
 			window.open(target.data('url'));
 			//win.location.href = 'www.google.com';
 		});		
-	  }	
+	  };	
 
 	
 	/****************************************************************************************************
@@ -53,7 +53,7 @@ $( function(){ //onDocument ready
 		myLayout.run();	
 		$('#graphTitle').text(title + " Layout");
 
-	}
+	};
 
 	/****************************************************************************************************
 	* Function to set the list of prev urls in the urlDropdownList
@@ -71,7 +71,7 @@ $( function(){ //onDocument ready
 			$('#setStartURl').val($(this).text());
 
 		});
-	}
+	};
 
 	
 	/****************************************************************************************************
@@ -182,7 +182,7 @@ $( function(){ //onDocument ready
 			xhr = null;
 		}
 		return xhr;
-	}
+	};
 	
 	/****************************************************************************************************
 	 * Set up the postSubmit button to send data to a server
@@ -416,50 +416,64 @@ $( function(){ //onDocument ready
 		var size = nodes.length;
 		var duration = (10000 / size);
 
+		var nodesCopy = nodes.clone();
+		
 		//loop through the list of nodes and:
 		//Show the node, then show the edges
 		for( var i = 0; i < nodes.length; ++i ){ 
-			var currentNode = nodes[i];
-			//console.log("Iterating through nodes index: " + i);
-			(function(currentNode, x){					
-				var nextNode = currentNode.connectedEdges(
+			var cNode = nodes[i];			
+		
+			var nextNodes = cNode.connectedEdges(
 					function(){
-						return this.source().same(currentNode);
+						return this.source().same(cNode);
 					}
-				).target();										
+				).targets();																		
+			//console.log('nextNodes.size: ' + nextNodes.size() + ', currentNode ID: ' + cNode.data('id')+ ', x: ' + x);
+			for (var index = 0; index < nextNodes.length; ++index){
+
+			var nNode = nextNodes[index];
+			//console.log('nextNode ID: ' + nNode.data('id'));
+
+			(function(currentNode, x, copyNode, nextNode){			
+				//console.log('currentNode: ' + currentNode.data('id')+ ', x: ' + x);
 				
-				if(nextNode != null && x != 0){
-					currentNode.delay( delay, function(){
-						currentNode.style("visibility", "visible");
-						//console.log("Delay function, currentNode: " + currentNode.id() + ", nextNode: " + nextNode.id());
-					} ).animate({					
-								renderedPosition: currentNode.position(),//from this position								
+				if(nextNode != null && x != 0 ){
+					var position = nextNode.renderedPosition();					
+					nextNode.renderedPosition(copyNode.renderedPosition());			
+
+					nextNode.delay( delay, function(){
+						nextNode.style("visibility", "visible");						
+					} ).animate(	{					
+								renderedPosition: position,//to this position								
 							}, {
 								duration: duration,
-								complete: function(){
-									//nextNode.style("visibility", "visible");
-									nextNode.style("visibility", "visible");										
+								complete: function(){								
+									//nextNode.style("visibility", "visible");										
 								}
 							}										
 						);					
-				}else{
-					//show currentNode after delay
-					currentNode.delay( delay, function(){
+				}else if (nextNode != null){				
+					var position = nextNode.renderedPosition();					
+					nextNode.renderedPosition(copyNode.renderedPosition());			
+	
+					nextNode.delay( delay, function(){
 						currentNode.style("visibility", "visible");
-						
-					} ).animate({					
-								renderedPosition: currentNode.position(),//from this position								
+						nextNode.style('visibility', 'visible');					
+					} ).animate(	{					
+								renderedPosition: position,//to this position								
 							}, {
 								duration: duration,
-								complete: function(){
-																			
+								complete: function(){								
+									//nextNode.style("visibility", "visible");										
 								}
 							}										
-						);
-					//console.log("nextNode is null or on first node");
-				}
+						);					
+						
+				}			
+						
 				delay += duration;
-			})(currentNode, i);				
+			})(cNode, i, nodesCopy[i], nNode);				
+			}
 		} // end of for	
 				
 	};
@@ -566,7 +580,7 @@ $( function(){ //onDocument ready
 	addSpinner = function(){
 		loading.classList.add('loaded');	
 		enablePage();
-	}
+	};
 
 	/****************************************************************************************************
 	 * Rebuild graph with new data.
@@ -634,8 +648,9 @@ $( function(){ //onDocument ready
 		});
 
 		setTimeout(resize, 0);						
-		initCytoscape();	
-		addNodesToGraphAsTree();
+		initCytoscape();
+		//addNodesToGraphAsLine(100);	
+		addNodesToGraphAsTree(20);
 		
 		cy.on('layoutstart', function (e) {			
 		    	disablePage();
@@ -645,7 +660,7 @@ $( function(){ //onDocument ready
 				var nodes = cy.filter('node'); // a cached copy of nodes			
 				nodes.style("visibility", "hidden");																	
 			}
-        });
+        	});
 		
 		cy.on('layoutstop', function (e) {
 			cy.center();
@@ -655,11 +670,12 @@ $( function(){ //onDocument ready
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			
 			if(doAnimation){				
-				var nodes = cy.filter('node'); // a cached copy of nodes			
+				//var nodes = cy.filter('node'); // a cached copy of nodes		
+				var nodes = cy.elements('node');
 				animateGraphBuilding(nodes);
 			}
 					
-        });
+        	});
 		
 		changeLayout('dagre', 'Dagre');
 	

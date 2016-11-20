@@ -128,12 +128,13 @@ add10MoreNodesToGraph = function(){
 };	
 
 //This is for testing
-addNodesToGraphAsLine = function(){
-	for (var i = 0; i < 50; i++) {
+addNodesToGraphAsLine = function(size){
+	for (var i = 0; i < size; i++) {
 		cy.add({
 			data: { 
 				id: 'node' + i, 
-				url: "http://js.cytoscape.org/",				
+				url: "http://js.cytoscape.org/",
+				name: 'node' + i
 			}
 		});
 		var source = 'node' + i;			
@@ -144,7 +145,7 @@ addNodesToGraphAsLine = function(){
 				data: {
 					id: 'edge' + i,
 					source: 'node' + (i-1),
-					target: 'node' + myTar,
+					target: 'node' + myTar
 				}
 			});
 		}			
@@ -152,8 +153,8 @@ addNodesToGraphAsLine = function(){
 };	
 
 //This is for testing
-addNodesToGraphAsTree = function(){
-	for (var i = 0; i < 100; ++i) {
+addNodesToGraphAsTree = function(size){
+	for (var i = 0; i < size; ++i) {
 		addATestNode(i);											
 	}	
 	
