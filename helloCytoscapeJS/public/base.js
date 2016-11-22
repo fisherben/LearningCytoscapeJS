@@ -92,7 +92,9 @@ $( function(){ //onDocument ready
 		
 		//add listener for click events on layout buttons
 		$('#layoutList li a').on('click', function(){		
-			
+			//Remove all queued animations for the viewport and jump to end of animation.
+			cy.stop(true, true);
+	
 			var layout = $(this).attr('data-layout');
 			var title = $(this).text();
 			
@@ -128,8 +130,7 @@ $( function(){ //onDocument ready
 					})
 				  .update(); // update the elements in the graph with the new style	
 			}						
-		});				
-		
+		});								
 		
 		//http://stackoverflow.com/questions/16214326/bootstrap-dropdown-with-hover
 		//Open the url drop down button on hover	
@@ -215,14 +216,15 @@ $( function(){ //onDocument ready
 		//http://stackoverflow.com/questions/5657292/why-is-false-used-after-this-simple-addeventlistener-function
 		postReq.addEventListener('load', function(){			
 				
+			var data = JSON.parse(postReq.responseText);
+
 			if(postReq.status >= 200 && postReq.status < 400){
-				cy.remove('node');//remove all nodes from graph
-					
-				var data = JSON.parse(postReq.responseText);
+				cy.remove('node');//remove all nodes from graph					
 				rebuildGraph(data);
 			}else{
 				console.log("Error making post request: ");
-				console.log(postReq.responseText);
+				console.log(data);
+				//$('#alert-dialog').html("<div class='alert alert-error'>"+ "Something has gone wrong:<br> " +  data + "</div>");	
 				$('#alert-dialog').show(2000).delay(4000).hide(2000);
 
 			}
@@ -231,8 +233,11 @@ $( function(){ //onDocument ready
 		}, false);
 
 		postReq.addEventListener('error', function(){
+			var data = JSON.parse(postReq.responseText);
+
 			console.log('Server returned an error');
-			console.log('Error: ' + postReq.status + ", " + postReq.message);			
+			console.log('Error: ' + postReq.status + ", " + data);		
+			//$('#alert-dialog').html("<div class='alert alert-error'>"+ "Something has gone wrong:<br> " +  data + "</div>");	
 			$('#alert-dialog').show(2000).delay(4000).hide(2000);;
 			enablePage();
 		}, false);
@@ -414,165 +419,81 @@ $( function(){ //onDocument ready
 						
 		var delay = 0;		
 		var size = nodes.length;
-		var duration = (10000 / size);
+		var duration = (200000 / size);
+		mod = $('#animationSpeed').val()/2;
+		if(mod < 1){ 
+			mod = 1; 
+			$('#animationSpeed').val(mod);
+		}else if(mod > 100){
+			mod = 100;
+			$('#animationSpeed').val(mod);
 
-		var nodesCopy = nodes.clone();
+		}
+		
+		duration /= mod;
+	
+		var visitedMap = {};//used to ensure nodes are only animated once
+
+		for(var index = 0; index < size; ++index){
+			visitedMap[nodes[index].data('id')] = 0;
+		}
+		var nodesCopy = nodes.clone();//store original rendered positions
 		
 		//loop through the list of nodes and:
 		//Show the node, then show the edges
 		for( var i = 0; i < nodes.length; ++i ){ 
-			var cNode = nodes[i];			
-		
+			var cNode = nodes[i];					
 			var nextNodes = cNode.connectedEdges(
 					function(){
 						return this.source().same(cNode);
 					}
 				).targets();																		
-			//console.log('nextNodes.size: ' + nextNodes.size() + ', currentNode ID: ' + cNode.data('id')+ ', x: ' + x);
-			for (var index = 0; index < nextNodes.length; ++index){
-
-			var nNode = nextNodes[index];
-			//console.log('nextNode ID: ' + nNode.data('id'));
-
-			(function(currentNode, x, copyNode, nextNode){			
-				//console.log('currentNode: ' + currentNode.data('id')+ ', x: ' + x);
-				
-				if(nextNode != null && x != 0 ){
-					var position = nextNode.renderedPosition();					
-					nextNode.renderedPosition(copyNode.renderedPosition());			
-
-					nextNode.delay( delay, function(){
-						nextNode.style("visibility", "visible");						
-					} ).animate(	{					
-								renderedPosition: position,//to this position								
-							}, {
-								duration: duration,
-								complete: function(){								
-									//nextNode.style("visibility", "visible");										
-								}
-							}										
-						);					
-				}else if (nextNode != null){				
-					var position = nextNode.renderedPosition();					
-					nextNode.renderedPosition(copyNode.renderedPosition());			
-	
-					nextNode.delay( delay, function(){
-						currentNode.style("visibility", "visible");
-						nextNode.style('visibility', 'visible');					
-					} ).animate(	{					
-								renderedPosition: position,//to this position								
-							}, {
-								duration: duration,
-								complete: function(){								
-									//nextNode.style("visibility", "visible");										
-								}
-							}										
-						);					
-						
-				}			
-						
-				delay += duration;
-			})(cNode, i, nodesCopy[i], nNode);				
-			}
-		} // end of for	
-				
-	};
-	  
-
-	/****************************************************************************************************	 
-	 * https://gist.github.com/maxkfranz/aedff159b0df05ccfaa5
-	 * method will animate the graph building visualization
-	 * 
-	 */
-	animateGraphBuilding1 = function(nodes){
-						
-		var delay = 0;		
-		var size = nodes.length;
-		var duration = (10000 / size);		
-		var nextPosition = new Array();
-		var positions = new Array();
 		
-		//loop through the list of nodes and:
-		//Move the nodes up to the parents position
-		$.each(nodes, function(index, currentNode){
-														
-			var nextNode = currentNode.connectedEdges(
-				function(){
-					return this.source().same(currentNode);
-				}
-			).target();										
-			
-			if(index == 0){
-				nextPosition.push(currentNode.position());
-			}
-			
-			if(nextNode != null){	
-				console.log("setting position for " + nextNode.id() + ", position x: " + nextNode.position().x + ", position y: " + nextNode.position().y);
-				//save last position	
-				positions.push(nextNode.position());
-				
-				nextPosition.push(nextNode.position());
-				//move to parents position
-				nextNode.position(nextPosition.shift());						
-			}
-		});
-			/*!!!!!!!unhide nodes!!!!!!!!!!!!!!!!
-			var nodes = cy.filter('node'); // a cached copy of nodes			
-			nodes.style("visibility", "visible");	
+			for (var index = 0; index < nextNodes.length; ++index){
+				var nNode = nextNodes[index];
 
-		$.each(nodes, function(index, currentNode){	
-				console.log("setting position for " + currentNode.id() + ", position x: " + currentNode.position().x + ", position y: " + currentNode.position().y);			
-		});		*/	
-		/*
-		//loop through the list of nodes and:
-		//Show the node, then show the edges
-		$.each(nodes, function(index, currentNode){					
-				var nextNode = currentNode.connectedEdges(
-					function(){
-						return this.source().same(currentNode);
-					}
-				).target();										
-				
-				if(nextNode != null){
-					currentNode.delay( delay, function(){
-						currentNode.style("visibility", "visible");
-						console.log("Delay function, currentNode: " + currentNode.id() + ", nextNode: " + nextNode.id());
-					} ).animate({					
-								position: positions.shift(),//from this position
-								css: {								
-									'z-index': index
-								}
+				(function(currentNode, x, copyNode, nextNode){			
+							
+					if(nextNode != null && x != 0 && visitedMap[nextNode.data('id')] < 1){
+						++visitedMap[nextNode.data('id')];
+						//console.log('currentNode: ' + currentNode.data('id')+ ', x: ' + x + ', nextNode: ' + nextNode.data('id') );
+		
+						var position = nextNode.renderedPosition();					
+						nextNode.renderedPosition(copyNode.renderedPosition());			
+
+						nextNode.delay( delay, function(){
+							nextNode.style("visibility", "visible");						
+						} ).animate(	{					
+								renderedPosition: position //to this position								
 							}, {
 								duration: duration,
-								complete: function(){
-									//nextNode.style("visibility", "visible");
-									nextNode.style("visibility", "visible");										
-								}
-							}										
+								complete: function(){/*do nothiing*/}
+							}																	
 						);					
-				}else{
-					//show currentNode after delay
-					currentNode.delay( delay, function(){
-						currentNode.style("visibility", "visible");
-						console.log("Delay function, currentNode: " + currentNode.id());
-					} ).animate({					
-								position: currentNode.position(),//to this position
-								css: {								
-									'z-index': index								
-								}
+					}else if (nextNode != null && visitedMap[nextNode.data('id')] < 1){	
+
+						var position = nextNode.renderedPosition();					
+						nextNode.renderedPosition(copyNode.renderedPosition());			
+	
+						nextNode.delay( delay, function(){
+							currentNode.style("visibility", "visible"); //show the root node
+							nextNode.style('visibility', 'visible');					
+						} ).animate(	{					
+								renderedPosition: position,//to this position								
 							}, {
 								duration: duration,
-								complete: function(){
-																			
-								}
+								complete: function(){/*do nothing*/}					
 							}										
-						);
-					console.log("nextNode is null or on first node");
-				}
-				delay += duration;
-			});		*/								
-	};
-	 
+						);											
+					}			
+						
+					delay += duration;
+
+				})(cNode, i, nodesCopy[i], nNode);						
+			} //end inner for, iterates through childeren nodes
+		} // end of outter for, iterates through all nodes					
+	};	  
+	
 	/****************************************************************************************************
 	 * Setup the cog spinner.
 	 * 
@@ -587,18 +508,21 @@ $( function(){ //onDocument ready
 	 * 
 	 */
 	rebuildGraph = function(data) {						
-		
+		//Remove all queued animations for the viewport and jump to end of animation.
+		cy.stop(true, true);
+
 		//create a Set of nodes and then add them to graph
 		//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
 		var nodeMap = {};
 
 		var i=0;
 		for (i=0;i<data.length;i++){
+//console.log('data[i].parent: ' + data[i].parent + ', data[i].child: ' + data[i].child);
 			//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object
-			var parent = Object.keys(data[i])[0];
-			var child = data[i][Object.keys(data[i])[0]];					
+			var parent = data[i].parent;
+			var child = data[i].child;					
 			var parsedUrl;
-			//console.log("parent: "+ parent + ", child: " + child);
+	//		console.log("parent: "+ parent + ", child: " + child);
 			try{
 				if(parent != null && i == 0){
 					parseUrl = getLocation(parent);		
@@ -638,7 +562,7 @@ $( function(){ //onDocument ready
 	 * 
 	 */
 	initWebPage = function() {		
-		
+
 		console.log("initializing web application");
 		win = $(window);
 
@@ -649,8 +573,8 @@ $( function(){ //onDocument ready
 
 		setTimeout(resize, 0);						
 		initCytoscape();
-		//addNodesToGraphAsLine(100);	
-		addNodesToGraphAsTree(20);
+		//addNodesToGraphAsLine(50);	
+		addNodesToGraphAsTree(127);
 		
 		cy.on('layoutstart', function (e) {			
 		    	disablePage();
@@ -698,7 +622,7 @@ $( function(){ //onDocument ready
 	getCookies = function(){			
 
 		var reqCookies = new XMLHttpRequest();
-		//not a asynchronous call
+	
 		reqCookies.open('GET', 'https://ikariotikos-web-crawl.appspot.com/getCookie', true);
 		reqCookies.addEventListener('load', function(){
 			if(reqCookies.status >= 200 && reqCookies.status < 400){

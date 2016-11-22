@@ -29,9 +29,9 @@ var session = Session({store: new SessionStore({
 	secret: process.env.PWD + process.env.USER, 
 	resave: true, 
 	saveUninitialized: true,
-	signed: true
-	//duration = 30 * 60 * 1000,
-	//activeDuration = 10 * 60 * 1000
+	signed: true,
+	duration: (7 * 24 * 3600 * 1000),
+	activeDuration: (1 * 24 * 3600 * 1000)
 });
 
 //layout defaults to main, located in the views layout folder
@@ -83,6 +83,7 @@ app.post('/callAPI', function (req, res, next) {
 		'Accept': 'application/json'
 	};
 	
+	//http://stackoverflow.com/questions/23925284/how-to-modify-the-nodejs-request-default-timeout-time
 	var options;
 	if(breadth == 'True'){	
 		// Configure the request
@@ -91,7 +92,8 @@ app.post('/callAPI', function (req, res, next) {
 			url: 'https://web-crawler-api.appspot.com/crawl',
 			method: 'POST',
 			headers: headers,
-			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keyword:': keyword}
+			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keyword:': keyword},
+			timeout: 3 * 60 * 1000
 		};
 	}else{
 		// Configure the request
@@ -100,24 +102,22 @@ app.post('/callAPI', function (req, res, next) {
 			url: 'https://web-crawler-api.appspot.com/crawl',
 			method: 'POST',
 			headers: headers,
-			form: {'url': url, 'depth_pages': depth, 'keyword': keyword}
+			form: {'url': url, 'depth_pages': depth, 'keyword': keyword},
+			timeout: 3 * 60 * 1000
 		};
 	}
     
-    //get graph data from API
-    request(options, function(err, response, body){
+    	//get graph data from API
+   	request(options, function(err, response, body){
 	
-	console.warn("Returning from API: ");      	
-	//console.log("body: " + body);
-      if (err || response.statusCode < 200 || response.statusCode >= 400) {	
-	
-      	return res.send({error: 'Something broke trying to call the WebCrawler API...'});
-      }else{	                  
-	//body.push(req.session.urls);
-      	return res.send(body);
-	}
-	next(err);
-    });
+		console.warn("Returning from API: ");      	
+		console.log("Returning from API");
+      		if (err || response.statusCode < 200 || response.statusCode >= 400) {		
+      			return res.status(response.statusCode).send(JSON.stringify(body));
+      		}else{	                  		
+      			return res.send(body);
+		}
+    	});
 });
 
 app.get('/getCookie', function(req, res, next){
@@ -130,6 +130,12 @@ app.get('/getCookie', function(req, res, next){
 });
 
 // [END hello_world]
+
+//handle errors and return message to client
+app.use(function (err, req, res, next) {
+  console.error(err.stack);
+  return res.status(500).send(JSON.stringify('Something broke! ' + err.stack));
+})
 
 //listener all for unrecognized urls
 //return 404 not found response
