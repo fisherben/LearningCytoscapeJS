@@ -24,14 +24,33 @@ var bodyParser = require('body-parser');
 var Session = require('express-session');
 var SessionStore = require('session-file-store')(Session);
 
-var session = Session({store: new SessionStore({
-	path: __dirname+'/tmp/sessions'}), 
+//https://github.com/expressjs/session
+var session = Session({
+	
+	//The session store instance, defaults to a new MemoryStore instance.
+	store: new SessionStore({path: __dirname+'/tmp/sessions'}), 
+
+	//This is the secret used to sign the session ID cookie. 
 	secret: process.env.PWD + process.env.USER, 
+
+	//Forces the session to be saved back to the session store, even if the session was never modified during the request. 
+	//Depending on your store this may be necessary, but it can also create race conditions where a client makes two 
+	//parallel requests to your server and changes made to the session in one request may get overwritten when 
+	//the other request ends, even if it made no changes (this behavior also depends on what store you're using).
 	resave: true, 
+
+	//Forces a session that is "uninitialized" to be saved to the store. 
+	//A session is uninitialized when it is new but not modified. 
 	saveUninitialized: true,
-	signed: true,
-	duration: (7 * 24 * 3600 * 1000),
-	activeDuration: (1 * 24 * 3600 * 1000)
+
+	//Force a session identifier cookie to be set on every response. 
+	//The expiration is reset to the original maxAge, resetting the expiration countdown.
+	rolling: true,
+
+	//Specifies the number (in milliseconds) to use when calculating the Expires Set-Cookie attribute. 
+	//This is done by taking the current server time and adding maxAge milliseconds to the value to calculate an Expires datetime. 
+	//By default, no maximum age is set.
+	cookie: {maxAge: (2 * 24 * 3600 * 1000), secure: false}
 });
 
 //layout defaults to main, located in the views layout folder

@@ -3,6 +3,7 @@
  */
 
 var cy = null
+var root;
 
 //https://codepen.io/yeoupooh/pen/RrBdeZ
 //style for node color and selected color
@@ -25,19 +26,18 @@ var nodeOptions = {
 initCytoscape = function(){
 	cy = window.cy = cytoscape({
 		container: document.getElementById('cy'),
-		minZoom: 0.1,
-		maxZoom: 1000,
+		minZoom: 0.01,
+		maxZoom: 5000,
 		wheelSensitivity: 0.1,
 		boxSelectionEnabled: false,
 		autounselectify: false,
 		boxSelectionEnabled: true,			
 		layout: {
-			name: 'grid',
-			minDist: 40,				
+			name: 'grid',						
 			fit: false,
 			columns: 2,
 			avoidOverlap: true,
-			avoidOverlapPadding: 80
+			avoidOverlapPadding: 10
 		},			
 		//information on using selector for node edge selections
 		//http://jsfiddle.net/xmojmr/rbuj3o9c/2/
@@ -92,42 +92,6 @@ var selectedEdgeHandler = function(evt) {
 }
 
 //This is for testing
-add10MoreNodesToGraph = function(){
-	
-	console.log('adding 10 more nodes to graph');
-	
-	var nodes = cy.nodes().length;
-	var index;
-	for (var i = 0; i < 10; i++) {
-		index = (i + nodes);
-		
-		cy.animate(
-		cy.add({
-			data: { 
-				id: 'node' + index, 
-				url: "http://js.cytoscape.org/",
-				myNodeColor: 'red'					
-			}
-		}),{
-		  duration: 1000			  
-		});
-		var source = 'node' + index;			
-		
-		if(i > 2){
-			var myTar = Math.floor((Math.random() * index));				
-			cy.add({
-				data: {
-					id: 'edge' + index,
-					source: source,
-					target: 'node' + myTar,
-					myEdgeColor: '#86B342'
-				}
-			});
-		}			
-	}			
-};	
-
-//This is for testing
 addNodesToGraphAsLine = function(size){
 	for (var i = 0; i < size; i++) {
 		cy.add({
@@ -154,8 +118,13 @@ addNodesToGraphAsLine = function(size){
 
 //This is for testing
 addNodesToGraphAsTree = function(size){
+	var node;
 	for (var i = 0; i < size; ++i) {
-		addATestNode(i);											
+		node = addATestNode(i);
+
+		if(i == 0){
+			setRoot(node);
+		}											
 	}	
 	
 	var nodes = cy.nodes();	
@@ -177,23 +146,29 @@ addNodesToGraphAsTree = function(size){
 };
 
 addATestNode = function(i){
-	cy.add({
+	var node = {
 		data: { 
 			id: 'node' + i, 
 			url: "http://js.cytoscape.org/",	
-			name: 'node' + i			
-		}
-	});
+			name: 'node' + i
+		}			
+	}
+
+	cy.add(node);
+	return node;
 };
 
 addANode = function(i, myUrl, name){
-	cy.add({
+	var node = {
 		data: { 
 			id: i, 
 			url: myUrl,				
 			name: name
 		}
-	});
+	}
+
+	cy.add(node);
+	return node;
 };
 
 addEdge = function(i, start, target){
@@ -206,4 +181,10 @@ addEdge = function(i, start, target){
 	});				
 };
 
-	
+setRoot = function(node){
+	root = node;
+};
+
+getRoot = function(){
+	return root;
+};	

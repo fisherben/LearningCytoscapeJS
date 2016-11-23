@@ -7,8 +7,9 @@ $( function(){ //onDocument ready
 	var $body = $('body');//used to show / hide spinner
 	var loading = document.getElementById('loading');
 	var myLayout;	
-	var urls = {}; // used to create map of urls returned from cookie	    
-		
+	var urls = {}; // used to create map of urls returned from cookie	    	
+	var myNodes; //store list of nodes
+
 	
 	/****************************************************************************************************
 	 * Animate zooming in on a node and then open url in new browser panel
@@ -48,11 +49,63 @@ $( function(){ //onDocument ready
 	* Function changes the layout
 	*
 	*/
-	changeLayout = function(layoutName, title){
-		myLayout = cy.elements().makeLayout({ name: layoutName });
+	changeLayout = function(layoutName, title,  root){	
+		var numOfNodes = cy.filter('node').length;
+		
+		//extent changes when I repeatedly change the layout to circle, (don't understand this behavior)
+		var extent = cy.extent();
+		var rect = document.getElementById("cy-container").getBoundingClientRect();
+	    
+		var x1 = rect.left;
+		var x2 = rect.right;
+		var y1 = rect.top;
+		var y2 = rect.bottom;
+		
+		var height = (y2 - y1);
+		var width = (x2 - x1);
+		var fact = (height < width) ? (height/numOfNodes) : (width/numOfNodes);
+		fact *= 5;
+		
+		var myRadius = height < width ? (height-fact) : (width-fact);
+		console.log("x1: " + x1 + ", y1: " + y1 + ", myRadius:  " + myRadius  + ", y2: " + y2 + ", x2: " + x2 + ", height: " + height + ", width: " + width + ", fact: " + fact );		
+	
+		switch(layoutName){
+			case 'circle': 
+				myLayout = cy.makeLayout(
+				{ 	name: layoutName,					
+					radius: myRadius,
+					boundingBox: {x1: x1, x2: x2, y1: y1, y2: y2},
+					fit: true,	
+					avoidOverlap: false
+				});
+				break;
+			case 'concentric': 
+				myLayout = cy.makeLayout(
+				{ 	name: layoutName,
+					height: height,
+					width: width,
+					fit: false,
+					avoidOverlap: true					
+				});
+				break;
+			case 'breadthfirst': 
+				myLayout = cy.makeLayout(
+				{ 	name: layoutName,				
+					boundingBox: {x1: x1, x2: x2, y1: y1, y2: y2},
+					fit: true,
+					roots: root,
+					avoidOverlap: false	 
+				});
+				break;
+			default :
+				myLayout = cy.makeLayout(
+				{
+					name: layoutName
+				});
+		}
+
 		myLayout.run();	
 		$('#graphTitle').text(title + " Layout");
-
 	};
 
 	/****************************************************************************************************
@@ -92,14 +145,12 @@ $( function(){ //onDocument ready
 		
 		//add listener for click events on layout buttons
 		$('#layoutList li a').on('click', function(){		
-			//Remove all queued animations for the viewport and jump to end of animation.
-			cy.stop(true, true);
-	
+							
 			var layout = $(this).attr('data-layout');
 			var title = $(this).text();
 			
 			if(layout != null && layout != ""){	
-				changeLayout(layout.toString(), title);
+				changeLayout(layout.toString(), title, getRoot());
 			}else{
 				console.log("Problem with layout, check layout buttons procedure");
 			}
@@ -215,8 +266,12 @@ $( function(){ //onDocument ready
 		//response to a java script object
 		//http://stackoverflow.com/questions/5657292/why-is-false-used-after-this-simple-addeventlistener-function
 		postReq.addEventListener('load', function(){			
-				
-			var data = JSON.parse(postReq.responseText);
+		
+			try{			
+				var data = JSON.parse(postReq.responseText);
+			}catch(err){
+				var data = "Error: Returned from postReq and data could not be parsed from JSON. " + postReq.responseText;	
+			}
 
 			if(postReq.status >= 200 && postReq.status < 400){
 				cy.remove('node');//remove all nodes from graph					
@@ -416,7 +471,7 @@ $( function(){ //onDocument ready
 	 * 
 	 */
 	animateGraphBuilding = function(nodes){
-						
+		myNodes = nodes;				
 		var delay = 0;		
 		var size = nodes.length;
 		var duration = (200000 / size);
@@ -472,6 +527,7 @@ $( function(){ //onDocument ready
 						);					
 					}else if (nextNode != null && visitedMap[nextNode.data('id')] < 1){	
 
+						++visitedMap[nextNode.data('id')];
 						var position = nextNode.renderedPosition();					
 						nextNode.renderedPosition(copyNode.renderedPosition());			
 	
@@ -508,35 +564,33 @@ $( function(){ //onDocument ready
 	 * 
 	 */
 	rebuildGraph = function(data) {						
-		//Remove all queued animations for the viewport and jump to end of animation.
-		cy.stop(true, true);
 
-		//create a Set of nodes and then add them to graph
-		//http://stackoverflow.com/questions/3042886/set-data-structure-of-java-in-javascript-jquery
-		var nodeMap = {};
+		//create a map to keep track of which nodes were added to graph
+		var nodeMap = {};		
+		var root; //keep track of root
 
 		var i=0;
-		for (i=0;i<data.length;i++){
-//console.log('data[i].parent: ' + data[i].parent + ', data[i].child: ' + data[i].child);
-			//http://stackoverflow.com/questions/6268679/best-way-to-get-the-key-of-a-key-value-javascript-object
+		for (i=0;i<data.length;i++){	
 			var parent = data[i].parent;
 			var child = data[i].child;					
 			var parsedUrl;
-	//		console.log("parent: "+ parent + ", child: " + child);
+
 			try{
 				if(parent != null && i == 0){
-					parseUrl = getLocation(parent);		
-					addANode(parent, parent, parseUrl.name);
+					parsedUrl = getLocation(parent);		
+
+					//set root
+					setRoot(addANode(parent, parent, parsedUrl.name));
 					nodeMap[parent] = true;
 					if(child != null && !nodeMap[child]){
-						parseUrl = getLocation(child);
-						addANode(child, child, parseUrl.name);								
+						parsedUrl = getLocation(child);
+						addANode(child, child, parsedUrl.name);								
 						nodeMap[child] = true
 					}
 							
 				}else if(child != null && !nodeMap[child]){
-					parseUrl = getLocation(child);
-					addANode(child, child, parseUrl.name);
+					parsedUrl = getLocation(child);
+					addANode(child, child, parsedUrl.name);
 					nodeMap[child] = true;
 				}
 			}catch(err){
@@ -553,7 +607,7 @@ $( function(){ //onDocument ready
 			}
 		}
 		
-		changeLayout('dagre', 'Dagre');
+		changeLayout('dagre', 'Dagre', getRoot());
 										
 	}; 
  
@@ -578,6 +632,12 @@ $( function(){ //onDocument ready
 		
 		cy.on('layoutstart', function (e) {			
 		    	disablePage();
+			
+			//Remove all queued animations and jump to end of animation.
+			if(myNodes){
+				myNodes.stop(true, true);		
+			}
+
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			if(doAnimation){
 				//hide nodes
@@ -587,6 +647,7 @@ $( function(){ //onDocument ready
         	});
 		
 		cy.on('layoutstop', function (e) {
+			cy.reset();
 			cy.center();
 			cy.fit();
 		    	enablePage();
@@ -601,7 +662,7 @@ $( function(){ //onDocument ready
 					
         	});
 		
-		changeLayout('dagre', 'Dagre');
+		changeLayout('dagre', 'Dagre', getRoot());
 	
 		//cy.center();
 		//cy.fit(); //optional arg is padding, fitt all elements
