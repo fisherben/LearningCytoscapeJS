@@ -65,16 +65,20 @@ initCytoscape = function(){
 				'color': 'black',						  
 				'text-outline-width': 0.1,
 				'text-outline-color': '#222',
-				'min-zoomed-font-size': 10					
+				'min-zoomed-font-size': 10,
+				'border-opacity': 0.0					
 			})			
-			.selector( ':selected').css({					
-				'background-color': nodeOptions.selected.bgColor,
-				'line-color': nodeOptions.selected.bgColor,
-				'target-arrow-color': nodeOptions.selected.arrowTarget,
-				'source-arrow-color': nodeOptions.selected.arrowSource								
+			.selector( 'node:selected').css({
+				'border-opacity': 0.5,					
+				'border-width': 5,
+				'border-style': 'solid',
+				'border-color': nodeOptions.selected.bgColor,
 			})
 			.selector( 'edge:selected').css({					
-				'width': 5		
+				'line-color': nodeOptions.selected.bgColor,
+				'target-arrow-color': nodeOptions.selected.arrowTarget,
+				'source-arrow-color': nodeOptions.selected.arrowSource,								
+				'width': 5	
 			})					
 	});
 };
@@ -169,9 +173,7 @@ addANode = function(i, myUrl, name, color){
 		}
 	}
 
-	cy.add(node).css({
-			'background-color': color
-		});
+	cy.add(node).css({ 'background-color': color });
 
 	return node;
 };
