@@ -104,21 +104,22 @@ app.post('/callAPI', function (req, res, next) {
 	
 	//http://stackoverflow.com/questions/23925284/how-to-modify-the-nodejs-request-default-timeout-time
 	var options;
+	var apiUrl = 'https://web-crawler-api2.appspot.com/crawl'
 	if(breadth == 'True'){	
 		// Configure the request
 		//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
 		options = {
-			url: 'https://web-crawler-api.appspot.com/crawl',
+			url: apiUrl,
 			method: 'POST',
 			headers: headers,
-			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keyword:': keyword},
+			form: {'url': url, 'breadth_pages': max_pages, 'depth': depth, 'keyword:': keyword, 'breadth': breadth},
 			timeout: 3 * 60 * 1000
 		};
 	}else{
 		// Configure the request
 		//http://stackoverflow.com/questions/32327858/how-to-send-a-post-request-from-node-js-express
-		var options = {
-			url: 'https://web-crawler-api.appspot.com/crawl',
+		options = {
+			url: apiUrl,
 			method: 'POST',
 			headers: headers,
 			form: {'url': url, 'depth_pages': depth, 'keyword': keyword},

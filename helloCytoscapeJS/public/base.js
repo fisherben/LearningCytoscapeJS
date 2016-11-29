@@ -8,7 +8,6 @@ $( function(){ //onDocument ready
 	var loading = document.getElementById('loading');
 	var myLayout;	
 	var urls = {}; // used to create map of urls returned from cookie	    	
-	var myNodes; //store list of nodes
 
 	
 	/****************************************************************************************************
@@ -64,9 +63,8 @@ $( function(){ //onDocument ready
 		var height = (y2 - y1);
 		var width = (x2 - x1);
 		var fact = (height < width) ? (height/numOfNodes) : (width/numOfNodes);
-		fact *= 5;
 		
-		var myRadius = height < width ? (height-fact) : (width-fact);
+		var myRadius = height < width ? (height-(3*fact)) : (width-(3*fact));
 		console.log("x1: " + x1 + ", y1: " + y1 + ", myRadius:  " + myRadius  + ", y2: " + y2 + ", x2: " + x2 + ", height: " + height + ", width: " + width + ", fact: " + fact );		
 	
 		switch(layoutName){
@@ -82,19 +80,31 @@ $( function(){ //onDocument ready
 			case 'concentric': 
 				myLayout = cy.makeLayout(
 				{ 	name: layoutName,
-					height: height,
-					width: width,
+					boundingBox: {x1: x1, x2: x2, y1: y1, y2: y2},
+					equidistant: false, // whether levels have an equal radial distance betwen them, may cause bounding box overflow
+					minNodeSpacing: 1, // min spacing between outside of nodes (used for radius adjustment)
 					fit: false,
+					levelWidth: function( nodes ){ // the variation of concentric values in each level
+  						return nodes.maxDegree()/4;
+  					},
+  					concentric: function( node ){ // returns numeric value for each node, placing higher nodes in levels towards the centre
+						if(getRoot() == node){
+							console.log("found root");
+							return Number.MAX_SAFE_INTEGER;
+						}else{
+							return node.degree();//boolean used to include loops in degree calc
+						}		
+  					},
 					avoidOverlap: true					
 				});
 				break;
 			case 'breadthfirst': 
 				myLayout = cy.makeLayout(
 				{ 	name: layoutName,				
-					boundingBox: {x1: x1, x2: x2, y1: y1, y2: y2},
+					boundingBox: {x1: x1, x2: x2, y1: y1, y2: y2},				
 					fit: true,
-					roots: root,
-					avoidOverlap: false	 
+					roots: getRoot(),
+					avoidOverlap: false
 				});
 				break;
 			default :
@@ -348,7 +358,7 @@ $( function(){ //onDocument ready
 					required: true,
 					searchDepth:true,
 					min: 1,
-                    			max: 700
+                    			max: 125
 				},
 				maxPagesName: {
 					required: true,
@@ -412,12 +422,14 @@ $( function(){ //onDocument ready
 				return false;				
 			}
 		});				
-						
+							
+			
 		$.validator.addMethod("searchDepth", function(value, element) {
 									
 			var result = true;
 			var option = $('select#crawlSearchGroup option:selected').attr('value');
-			if(option == 'breadth'){
+			if(option == 'breadth'){		
+
 				$('#max_pages_group').show();
 				if(value>3){
 					result = false;
@@ -425,9 +437,11 @@ $( function(){ //onDocument ready
 	
 			}
 			if(option == 'depth'){
+				
 				$('#max_pages_group').hide();
-				if(value>700){
+				if(value>125){
 					result = false;
+					searchDepth
 				}
 			}
 			if(option == null){
@@ -471,7 +485,7 @@ $( function(){ //onDocument ready
 	 * 
 	 */
 	animateGraphBuilding = function(nodes){
-		myNodes = nodes;				
+				
 		var delay = 0;		
 		var size = nodes.length;
 		var duration = (200000 / size);
@@ -546,7 +560,7 @@ $( function(){ //onDocument ready
 					delay += duration;
 
 				})(cNode, i, nodesCopy[i], nNode);						
-			} //end inner for, iterates through childeren nodes
+			} //end inner for, iterates through children nodes
 		} // end of outter for, iterates through all nodes					
 	};	  
 	
@@ -574,7 +588,7 @@ $( function(){ //onDocument ready
 			var parent = data[i].parent;
 			var child = data[i].child;					
 			var parsedUrl;
-
+//console.log("parent: " + parent + ", child: " + child);
 			try{
 				if(parent != null && i == 0){
 					parsedUrl = getLocation(parent);		
@@ -632,16 +646,15 @@ $( function(){ //onDocument ready
 		
 		cy.on('layoutstart', function (e) {			
 		    	disablePage();
-			
-			//Remove all queued animations and jump to end of animation.
-			if(myNodes){
-				myNodes.stop(true, true);		
-			}
+				
+			//hide nodes
+			var nodes = cy.filter('node'); // a cached copy of nodes			
+
+			//Remove all queued animations and jump to end of animation.		
+			nodes.stop(true, true);					
 
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			if(doAnimation){
-				//hide nodes
-				var nodes = cy.filter('node'); // a cached copy of nodes			
 				nodes.style("visibility", "hidden");																	
 			}
         	});
