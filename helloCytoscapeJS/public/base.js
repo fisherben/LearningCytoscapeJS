@@ -65,7 +65,7 @@ $( function(){ //onDocument ready
 		var fact = (height < width) ? (height/numOfNodes) : (width/numOfNodes);
 		
 		var myRadius = height < width ? (height-(3*fact)) : (width-(3*fact));
-		console.log("x1: " + x1 + ", y1: " + y1 + ", myRadius:  " + myRadius  + ", y2: " + y2 + ", x2: " + x2 + ", height: " + height + ", width: " + width + ", fact: " + fact );		
+//		console.log("x1: " + x1 + ", y1: " + y1 + ", myRadius:  " + myRadius  + ", y2: " + y2 + ", x2: " + x2 + ", height: " + height + ", width: " + width + ", fact: " + fact );		
 	
 		switch(layoutName){
 			case 'circle': 
@@ -582,29 +582,32 @@ $( function(){ //onDocument ready
 		//create a map to keep track of which nodes were added to graph
 		var nodeMap = {};		
 		var root; //keep track of root
+		var color = nodeOptions.normal.bgColorNode;
+		var endColor = nodeOptions.normal.bgColorNodeEnd;
 
+		var colors = gradient(color, endColor, data.length);
 		var i=0;
 		for (i=0;i<data.length;i++){	
 			var parent = data[i].parent;
 			var child = data[i].child;					
 			var parsedUrl;
-//console.log("parent: " + parent + ", child: " + child);
+
 			try{
 				if(parent != null && i == 0){
 					parsedUrl = getLocation(parent);		
 
 					//set root
-					setRoot(addANode(parent, parent, parsedUrl.name));
+					setRoot(addANode(parent, parent, parsedUrl.name, colors[i]));
 					nodeMap[parent] = true;
 					if(child != null && !nodeMap[child]){
-						parsedUrl = getLocation(child);
-						addANode(child, child, parsedUrl.name);								
+						parsedUrl = getLocation(child);				
+						var node = addANode(child, child, parsedUrl.name, colors[i+1]);											
 						nodeMap[child] = true
 					}
 							
 				}else if(child != null && !nodeMap[child]){
 					parsedUrl = getLocation(child);
-					addANode(child, child, parsedUrl.name);
+					addANode(child, child, parsedUrl.name, colors[i]);
 					nodeMap[child] = true;
 				}
 			}catch(err){
@@ -623,8 +626,8 @@ $( function(){ //onDocument ready
 		
 		changeLayout('dagre', 'Dagre', getRoot());
 										
-	}; 
- 
+	};
+
 	/****************************************************************************************************
 	 * Initializes the application.
 	 * 
