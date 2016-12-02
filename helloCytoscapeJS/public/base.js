@@ -623,7 +623,7 @@ $( function(){ //onDocument ready
 			}
 		}
 		
-		if(!isBreadth){
+		if(!isBreadth || isBreadth == 'False'){
 			changeLayout('dagre', 'Dagre', getRoot());
 		}else{
 			changeLayout('grid', 'Grid', getRoot());						
