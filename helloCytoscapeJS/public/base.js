@@ -112,10 +112,9 @@ $( function(){ //onDocument ready
 				{
 					name: layoutName
 				});
-		}
-
+		}		
 		myLayout.run();	
-		$('#graphTitle').text(title + " Layout");
+		$('#graphTitle').text(title + " Layout");		
 	};
 
 	/****************************************************************************************************
@@ -285,7 +284,7 @@ $( function(){ //onDocument ready
 
 			if(postReq.status >= 200 && postReq.status < 400){
 				cy.remove('node');//remove all nodes from graph					
-				rebuildGraph(data);
+				rebuildGraph(data, vettedBreadth);
 			}else{
 				console.log("Error making post request: ");
 				console.log(data);
@@ -577,7 +576,7 @@ $( function(){ //onDocument ready
 	 * Rebuild graph with new data.
 	 * 
 	 */
-	rebuildGraph = function(data) {						
+	rebuildGraph = function(data, isBreadth) {						
 
 		//create a map to keep track of which nodes were added to graph
 		var nodeMap = {};		
@@ -624,7 +623,11 @@ $( function(){ //onDocument ready
 			}
 		}
 		
-		changeLayout('dagre', 'Dagre', getRoot());
+		if(!isBreadth){
+			changeLayout('dagre', 'Dagre', getRoot());
+		}else{
+			changeLayout('grid', 'Grid', getRoot());						
+		}
 										
 	};
 
@@ -654,8 +657,8 @@ $( function(){ //onDocument ready
 			var nodes = cy.filter('node'); // a cached copy of nodes			
 
 			//Remove all queued animations and jump to end of animation.		
-			nodes.stop(true, true);					
-
+			nodes.stop(true, true);						
+			
 			var doAnimation = $(showAnimationCheck).is(':checked');
 			if(doAnimation){
 				nodes.style("visibility", "hidden");																	
